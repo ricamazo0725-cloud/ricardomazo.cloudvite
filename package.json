@@ -1,0 +1,13 @@
+{
+  "name": "cv-ricardo-mazo",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "chmod +x apps/web/node_modules/.bin/* 2>/dev/null; pnpm --filter web build",
+    "preview": "pnpm --filter web preview"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

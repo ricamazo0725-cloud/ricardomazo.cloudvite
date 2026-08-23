@@ -1,11 +1,13 @@
 {
-  "name": "cv-ricardo-mazo",
+  "name": "cv Ricardomazo",
   "private": true,
   "version": "1.0.0",
+  "packageManager": "pnpm@11.20.0",
   "scripts": {
-    "dev": "pnpm --filter web dev",
-    "build": "chmod +x apps/web/node_modules/.bin/* 2>/dev/null; pnpm --filter web build",
-    "preview": "pnpm --filter web preview"
+    "dev": "cd apps/web && npx vite",
+    "postinstall": "node -e \"try { require('child_process').execSync('chmod +x node_modules/.bin/* node_modules/.pnpm/*/node_modules/.bin/* node_modules/@esbuild/*/bin/* 2>/dev/null'); } catch (e) {}\"",
+    "build": "cd apps/web && npx vite build && node -e \"try { require('fs').cpSync('../../dist/apps/web', '../../dist', { recursive: true }); } catch (e) {}\"",
+    "preview": "cd apps/web && npx vite preview"
   },
   "engines": {
     "node": ">=20"

@@ -1,12 +1,11 @@
 packages:
   - "apps/*"
 
-onlyBuiltDependencies:
-  - esbuild
-
 allowBuilds:
   esbuild: true
 
+minimumReleaseAgeExclude:
+  - read-cache@1.0.2
+
 overrides:
   read-cache: "1.0.0"
-  esbuild: "^0.24.2"

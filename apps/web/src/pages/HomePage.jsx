@@ -8,8 +8,10 @@ import Contact from "@/components/Contact";
 import { getAllSections } from "@/api/content";
 import { getServices } from "@/api/services";
 import { getExperience } from "@/api/experience";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function HomePage() {
+  const { t } = useLanguage();
   const [sections, setSections] = useState(null);
   const [services, setServices] = useState([]);
   const [experience, setExperience] = useState([]);
@@ -29,7 +31,7 @@ export default function HomePage() {
     return (
       <Layout>
         <div className="max-w-6xl mx-auto px-6 py-24 font-mono text-sm text-muted">
-          No se pudo cargar el contenido: {error}
+          {t("homePage.loadError")} {error}
         </div>
       </Layout>
     );

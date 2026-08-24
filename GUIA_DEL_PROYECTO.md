@@ -87,7 +87,25 @@ Para cambiar la paleta, edita solo las variables `--background`, `--primary`,
 - Estructura visual de cada sección: los componentes en `src/components/`
   (`Hero.jsx`, `About.jsx`, `Services.jsx`, `Experience.jsx`, `Contact.jsx`).
 
-## 6. Qué no tocar
+## 6. Multi-idioma (ES/EN)
+
+El sitio soporta español e inglés:
+
+- **Textos fijos de la interfaz** (nav, botones, mensajes de estado vacío) están
+  en `src/i18n/translations.js`. Para agregar un idioma nuevo, agrega su código
+  a `LOCALES` en ese archivo y completa todas las claves.
+- **Contenido editable desde Supabase** (hero, sobre mí, servicios, experiencia,
+  contacto) guarda los campos traducibles como `{ "es": "...", "en": "..." }` en
+  vez de texto plano. Los campos que NO se traducen (enlaces, correo, WhatsApp,
+  nombre de empresa) se quedan como texto plano.
+- El selector ES/EN del header público cambia el idioma que ve el visitante.
+  En `/admin` hay un selector aparte para elegir qué idioma estás editando en
+  cada campo bilingüe — cambia a "EN" y completa la traducción en inglés.
+- Si ya tenías contenido cargado en Supabase con el schema viejo (texto plano),
+  corre `apps/web/supabase/migration_i18n.sql` una sola vez en el SQL Editor de
+  Supabase para migrarlo al nuevo formato antes de desplegar este cambio.
+
+## 7. Qué no tocar
 
 - `src/lib/supabaseClient.js`, `src/api/*.js`, `src/hooks/*.jsx`: si cambias
   la forma de los datos que devuelven, tienes que actualizar los componentes

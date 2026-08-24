@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/hooks/useLanguage";
 import { getAllSections, upsertSection } from "@/api/content";
 import {
   getServices,
@@ -14,57 +15,119 @@ import {
   deleteExperience,
 } from "@/api/experience";
 
-const TABS = ["Contenido", "Servicios", "Experiencia"];
-
 export default function AdminDashboardPage() {
   const { signOut } = useAuth();
-  const [tab, setTab] = useState("Contenido");
+  const { t, locales } = useLanguage();
+  const TABS = [t("admin.tabs.content"), t("admin.tabs.services"), t("admin.tabs.experience")];
+  const [tab, setTab] = useState(TABS[0]);
+  // Idioma que se está editando en los campos bilingües del panel (independiente
+  // del idioma en que el propio admin ve su interfaz).
+  const [editLang, setEditLang] = useState(locales[0]);
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-          <span className="font-display font-semibold">Panel admin</span>
-          <button
-            onClick={signOut}
-            className="font-mono text-xs uppercase tracking-wider border border-border rounded px-3 py-1.5 hover:border-primary hover:text-primary transition-colors focus-ring"
-          >
-            Cerrar sesión
-          </button>
+          <span className="font-display font-semibold">{t("admin.title")}</span>
+          <div className="flex items-center gap-3">
+            <EditLangSwitch value={editLang} onChange={setEditLang} locales={locales} />
+            <button
+              onClick={signOut}
+              className="font-mono text-xs uppercase tracking-wider border border-border rounded px-3 py-1.5 hover:border-primary hover:text-primary transition-colors focus-ring"
+            >
+              {t("admin.signOut")}
+            </button>
+          </div>
         </div>
       </header>
 
       <div className="max-w-5xl mx-auto px-6 py-10">
         <nav className="flex gap-2 mb-10 font-mono text-xs uppercase tracking-wider">
-          {TABS.map((t) => (
+          {TABS.map((tb) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
+              key={tb}
+              onClick={() => setTab(tb)}
               className={`px-4 py-2 rounded border focus-ring ${
-                tab === t
+                tab === tb
                   ? "border-primary text-primary"
                   : "border-border text-muted hover:text-foreground"
               }`}
             >
-              {t}
+              {tb}
             </button>
           ))}
         </nav>
 
-        {tab === "Contenido" && <ContentEditor />}
-        {tab === "Servicios" && <ServicesEditor />}
-        {tab === "Experiencia" && <ExperienceEditor />}
+        {tab === TABS[0] && <ContentEditor editLang={editLang} />}
+        {tab === TABS[1] && <ServicesEditor editLang={editLang} />}
+        {tab === TABS[2] && <ExperienceEditor editLang={editLang} />}
       </div>
     </div>
   );
 }
 
-function SavedNote({ show }) {
-  if (!show) return null;
-  return <span className="font-mono text-xs text-primary">Guardado ✓</span>;
+function EditLangSwitch({ value, onChange, locales }) {
+  const { t } = useLanguage();
+  return (
+    <div className="flex items-center border border-border rounded overflow-hidden font-mono text-xs uppercase tracking-wider">
+      {locales.map((l) => (
+        <button
+          key={l}
+          type="button"
+          onClick={() => onChange(l)}
+          className={`px-3 py-1.5 transition-colors focus-ring ${
+            value === l ? "bg-primary text-primary-foreground" : "text-muted hover:text-foreground"
+          }`}
+        >
+          {t(`admin.langTab.${l}`)}
+        </button>
+      ))}
+    </div>
+  );
 }
 
-function ContentEditor() {
+function SavedNote({ show }) {
+  const { t } = useLanguage();
+  if (!show) return null;
+  return <span className="font-mono text-xs text-primary">{t("admin.saved")}</span>;
+}
+
+// Lee/escribe el valor de un campo bilingüe { es: "...", en: "..." }.
+// Si el dato aún es un string plano (contenido viejo sin migrar), lo trata
+// como si fuera el valor del idioma por defecto (es) y lo convierte a objeto
+// en cuanto el admin lo edita.
+function readBilingual(value, editLang, fallbackLang = "es") {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value[editLang] ?? "";
+  }
+  return editLang === fallbackLang ? value ?? "" : "";
+}
+
+function writeBilingual(value, editLang, newText, fallbackLang = "es") {
+  const base =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? value
+      : { [fallbackLang]: value ?? "" };
+  return { ...base, [editLang]: newText };
+}
+
+function readBilingualArray(value, editLang, fallbackLang = "es") {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value[editLang] ?? [];
+  }
+  return editLang === fallbackLang ? value ?? [] : [];
+}
+
+function writeBilingualArray(value, editLang, newArray, fallbackLang = "es") {
+  const base =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? value
+      : { [fallbackLang]: value ?? [] };
+  return { ...base, [editLang]: newArray };
+}
+
+function ContentEditor({ editLang }) {
+  const { t } = useLanguage();
   const [hero, setHero] = useState({});
   const [about, setAbout] = useState({});
   const [contact, setContact] = useState({});
@@ -73,7 +136,7 @@ function ContentEditor() {
   useEffect(() => {
     getAllSections().then((s) => {
       setHero(s.hero || {});
-      setAbout(s.about || { paragraphs: [], stats: [] });
+      setAbout(s.about || { paragraphs: {}, stats: [] });
       setContact(s.contact || {});
     });
   }, []);
@@ -89,30 +152,49 @@ function ContentEditor() {
       {/* HERO */}
       <section className="card p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-display font-semibold text-lg">Hero</h2>
+          <h2 className="font-display font-semibold text-lg">{t("admin.hero.title")}</h2>
           <SavedNote show={savedKey === "hero"} />
         </div>
-        <Field label="Estado (eyebrow)" value={hero.status} onChange={(v) => setHero({ ...hero, status: v })} />
-        <Field label="Título" value={hero.title} onChange={(v) => setHero({ ...hero, title: v })} textarea />
-        <Field label="Subtítulo" value={hero.subtitle} onChange={(v) => setHero({ ...hero, subtitle: v })} textarea />
+        <BilingualField
+          label={t("admin.hero.status")}
+          value={hero.status}
+          editLang={editLang}
+          onChange={(v) => setHero({ ...hero, status: v })}
+        />
+        <BilingualField
+          label={t("admin.hero.heroTitle")}
+          value={hero.title}
+          editLang={editLang}
+          onChange={(v) => setHero({ ...hero, title: v })}
+          textarea
+        />
+        <BilingualField
+          label={t("admin.hero.subtitle")}
+          value={hero.subtitle}
+          editLang={editLang}
+          onChange={(v) => setHero({ ...hero, subtitle: v })}
+          textarea
+        />
         <div className="grid sm:grid-cols-2 gap-4">
-          <Field
-            label="Botón primario — texto"
+          <BilingualField
+            label={t("admin.hero.primaryLabel")}
             value={hero.primaryCta?.label}
+            editLang={editLang}
             onChange={(v) => setHero({ ...hero, primaryCta: { ...hero.primaryCta, label: v } })}
           />
           <Field
-            label="Botón primario — enlace"
+            label={t("admin.hero.primaryHref")}
             value={hero.primaryCta?.href}
             onChange={(v) => setHero({ ...hero, primaryCta: { ...hero.primaryCta, href: v } })}
           />
-          <Field
-            label="Botón secundario — texto"
+          <BilingualField
+            label={t("admin.hero.secondaryLabel")}
             value={hero.secondaryCta?.label}
+            editLang={editLang}
             onChange={(v) => setHero({ ...hero, secondaryCta: { ...hero.secondaryCta, label: v } })}
           />
           <Field
-            label="Botón secundario — enlace"
+            label={t("admin.hero.secondaryHref")}
             value={hero.secondaryCta?.href}
             onChange={(v) => setHero({ ...hero, secondaryCta: { ...hero.secondaryCta, href: v } })}
           />
@@ -123,35 +205,39 @@ function ContentEditor() {
       {/* ABOUT */}
       <section className="card p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-display font-semibold text-lg">Sobre mí</h2>
+          <h2 className="font-display font-semibold text-lg">{t("admin.about.title")}</h2>
           <SavedNote show={savedKey === "about"} />
         </div>
-        <Field
-          label="Párrafos (uno por línea)"
-          value={(about.paragraphs || []).join("\n")}
-          onChange={(v) => setAbout({ ...about, paragraphs: v.split("\n").filter(Boolean) })}
-          textarea
-          rows={5}
+        <BilingualParagraphsField
+          label={t("admin.about.paragraphs")}
+          value={about.paragraphs}
+          editLang={editLang}
+          onChange={(paragraphs) => setAbout({ ...about, paragraphs })}
         />
-        <StatsEditor stats={about.stats || []} onChange={(stats) => setAbout({ ...about, stats })} />
+        <StatsEditor
+          stats={about.stats || []}
+          editLang={editLang}
+          onChange={(stats) => setAbout({ ...about, stats })}
+        />
         <SaveButton onClick={() => save("about", about)} />
       </section>
 
       {/* CONTACT */}
       <section className="card p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-display font-semibold text-lg">Contacto</h2>
+          <h2 className="font-display font-semibold text-lg">{t("admin.contact.title")}</h2>
           <SavedNote show={savedKey === "contact"} />
         </div>
-        <Field label="Correo" value={contact.email} onChange={(v) => setContact({ ...contact, email: v })} />
+        <Field label={t("admin.contact.email")} value={contact.email} onChange={(v) => setContact({ ...contact, email: v })} />
         <Field
-          label="WhatsApp (con código de país, solo números)"
+          label={t("admin.contact.whatsapp")}
           value={contact.whatsapp}
           onChange={(v) => setContact({ ...contact, whatsapp: v })}
         />
-        <Field
-          label="Mensaje predeterminado de WhatsApp"
+        <BilingualField
+          label={t("admin.contact.whatsappMessage")}
           value={contact.whatsappMessage}
+          editLang={editLang}
           onChange={(v) => setContact({ ...contact, whatsappMessage: v })}
         />
         <SaveButton onClick={() => save("contact", contact)} />
@@ -160,14 +246,15 @@ function ContentEditor() {
   );
 }
 
-function StatsEditor({ stats, onChange }) {
+function StatsEditor({ stats, editLang, onChange }) {
+  const { t } = useLanguage();
   function update(i, field, value) {
     const next = [...stats];
     next[i] = { ...next[i], [field]: value };
     onChange(next);
   }
   function add() {
-    onChange([...stats, { value: "", label: "" }]);
+    onChange([...stats, { value: "", label: {} }]);
   }
   function remove(i) {
     onChange(stats.filter((_, idx) => idx !== i));
@@ -175,19 +262,19 @@ function StatsEditor({ stats, onChange }) {
 
   return (
     <div className="space-y-2">
-      <label className="font-mono text-xs uppercase tracking-wider text-muted">Métricas</label>
+      <label className="font-mono text-xs uppercase tracking-wider text-muted">{t("admin.about.stats")}</label>
       {stats.map((s, i) => (
         <div key={i} className="flex gap-2">
           <input
-            placeholder="Valor (ej. 100%)"
-            value={s.value}
+            placeholder={t("admin.about.statValue")}
+            value={s.value || ""}
             onChange={(e) => update(i, "value", e.target.value)}
             className="w-1/3 bg-surface-2 border border-border rounded px-3 py-2 text-sm focus-ring"
           />
           <input
-            placeholder="Etiqueta"
-            value={s.label}
-            onChange={(e) => update(i, "label", e.target.value)}
+            placeholder={t("admin.about.statLabel")}
+            value={readBilingual(s.label, editLang)}
+            onChange={(e) => update(i, "label", writeBilingual(s.label, editLang, e.target.value))}
             className="flex-1 bg-surface-2 border border-border rounded px-3 py-2 text-sm focus-ring"
           />
           <button
@@ -195,7 +282,7 @@ function StatsEditor({ stats, onChange }) {
             className="font-mono text-xs text-muted hover:text-red-400 px-2"
             type="button"
           >
-            Quitar
+            {t("admin.remove")}
           </button>
         </div>
       ))}
@@ -204,7 +291,7 @@ function StatsEditor({ stats, onChange }) {
         type="button"
         className="font-mono text-xs uppercase tracking-wider text-accent hover:opacity-80"
       >
-        + Agregar métrica
+        {t("admin.about.addStat")}
       </button>
     </div>
   );
@@ -225,21 +312,52 @@ function Field({ label, value, onChange, textarea, rows = 3 }) {
   );
 }
 
+// Igual que Field, pero el valor guardado es { es: "...", en: "..." } y
+// muestra/edita solo el idioma seleccionado (editLang) a la vez.
+function BilingualField({ label, value, editLang, onChange, textarea, rows = 3 }) {
+  return (
+    <Field
+      label={label}
+      value={readBilingual(value, editLang)}
+      onChange={(text) => onChange(writeBilingual(value, editLang, text))}
+      textarea={textarea}
+      rows={rows}
+    />
+  );
+}
+
+// Para arreglos bilingües (ej. párrafos): se edita como texto, una línea por
+// elemento, guardando { es: [...], en: [...] }.
+function BilingualParagraphsField({ label, value, editLang, onChange, rows = 5 }) {
+  const current = readBilingualArray(value, editLang);
+  return (
+    <Field
+      label={label}
+      value={current.join("\n")}
+      onChange={(text) => onChange(writeBilingualArray(value, editLang, text.split("\n").filter(Boolean)))}
+      textarea
+      rows={rows}
+    />
+  );
+}
+
 function SaveButton({ onClick }) {
+  const { t } = useLanguage();
   return (
     <button
       onClick={onClick}
       type="button"
       className="font-mono text-xs uppercase tracking-wider bg-primary text-primary-foreground rounded px-4 py-2 hover:opacity-90 transition-opacity focus-ring"
     >
-      Guardar
+      {t("admin.save")}
     </button>
   );
 }
 
-function ServicesEditor() {
+function ServicesEditor({ editLang }) {
+  const { t } = useLanguage();
   const [items, setItems] = useState([]);
-  const [draft, setDraft] = useState({ title: "", description: "", order_index: 0 });
+  const [draft, setDraft] = useState({ title: {}, description: {}, order_index: 0 });
 
   function refresh() {
     getServices().then(setItems);
@@ -247,29 +365,39 @@ function ServicesEditor() {
   useEffect(refresh, []);
 
   async function add() {
-    if (!draft.title) return;
+    if (!readBilingual(draft.title, editLang)) return;
     await createService(draft);
-    setDraft({ title: "", description: "", order_index: 0 });
+    setDraft({ title: {}, description: {}, order_index: 0 });
     refresh();
   }
   async function remove(id) {
     await deleteService(id);
     refresh();
   }
+  async function saveItem(item) {
+    await updateService(item.id, { title: item.title, description: item.description, order_index: item.order_index });
+    refresh();
+  }
 
   return (
     <div className="space-y-6">
       <div className="card p-6 space-y-3">
-        <h2 className="font-display font-semibold text-lg">Nuevo servicio</h2>
-        <Field label="Título" value={draft.title} onChange={(v) => setDraft({ ...draft, title: v })} />
-        <Field
-          label="Descripción"
+        <h2 className="font-display font-semibold text-lg">{t("admin.servicesEditor.newTitle")}</h2>
+        <BilingualField
+          label={t("admin.servicesEditor.fieldTitle")}
+          value={draft.title}
+          editLang={editLang}
+          onChange={(v) => setDraft({ ...draft, title: v })}
+        />
+        <BilingualField
+          label={t("admin.servicesEditor.fieldDescription")}
           value={draft.description}
+          editLang={editLang}
           onChange={(v) => setDraft({ ...draft, description: v })}
           textarea
         />
         <Field
-          label="Orden"
+          label={t("admin.servicesEditor.order")}
           value={draft.order_index}
           onChange={(v) => setDraft({ ...draft, order_index: Number(v) || 0 })}
         />
@@ -277,19 +405,39 @@ function ServicesEditor() {
       </div>
 
       <div className="space-y-3">
-        {items.map((item) => (
-          <div key={item.id} className="card p-4 flex items-start justify-between gap-4">
-            <div>
+        {items.map((item, idx) => (
+          <div key={item.id} className="card p-4 space-y-3">
+            <div className="flex items-start justify-between gap-4">
               <div className="font-mono text-xs text-accent">#{item.order_index}</div>
-              <h3 className="font-display font-semibold">{item.title}</h3>
-              <p className="text-sm text-muted">{item.description}</p>
+              <button
+                onClick={() => remove(item.id)}
+                className="font-mono text-xs text-muted hover:text-red-400"
+              >
+                {t("admin.delete")}
+              </button>
             </div>
-            <button
-              onClick={() => remove(item.id)}
-              className="font-mono text-xs text-muted hover:text-red-400"
-            >
-              Eliminar
-            </button>
+            <BilingualField
+              label={t("admin.servicesEditor.fieldTitle")}
+              value={item.title}
+              editLang={editLang}
+              onChange={(v) => {
+                const next = [...items];
+                next[idx] = { ...item, title: v };
+                setItems(next);
+              }}
+            />
+            <BilingualField
+              label={t("admin.servicesEditor.fieldDescription")}
+              value={item.description}
+              editLang={editLang}
+              onChange={(v) => {
+                const next = [...items];
+                next[idx] = { ...item, description: v };
+                setItems(next);
+              }}
+              textarea
+            />
+            <SaveButton onClick={() => saveItem(items[idx])} />
           </div>
         ))}
       </div>
@@ -297,9 +445,10 @@ function ServicesEditor() {
   );
 }
 
-function ExperienceEditor() {
+function ExperienceEditor({ editLang }) {
+  const { t } = useLanguage();
   const [items, setItems] = useState([]);
-  const [draft, setDraft] = useState({ role: "", company: "", period: "", description: "", order_index: 0 });
+  const [draft, setDraft] = useState({ role: {}, company: "", period: {}, description: {}, order_index: 0 });
 
   function refresh() {
     getExperience().then(setItems);
@@ -307,37 +456,54 @@ function ExperienceEditor() {
   useEffect(refresh, []);
 
   async function add() {
-    if (!draft.role) return;
+    if (!readBilingual(draft.role, editLang)) return;
     await createExperience(draft);
-    setDraft({ role: "", company: "", period: "", description: "", order_index: 0 });
+    setDraft({ role: {}, company: "", period: {}, description: {}, order_index: 0 });
     refresh();
   }
   async function remove(id) {
     await deleteExperience(id);
     refresh();
   }
+  async function saveItem(item) {
+    await updateExperience(item.id, {
+      role: item.role,
+      company: item.company,
+      period: item.period,
+      description: item.description,
+      order_index: item.order_index,
+    });
+    refresh();
+  }
 
   return (
     <div className="space-y-6">
       <div className="card p-6 space-y-3">
-        <h2 className="font-display font-semibold text-lg">Nueva experiencia</h2>
+        <h2 className="font-display font-semibold text-lg">{t("admin.experienceEditor.newTitle")}</h2>
         <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="Cargo" value={draft.role} onChange={(v) => setDraft({ ...draft, role: v })} />
-          <Field label="Empresa" value={draft.company} onChange={(v) => setDraft({ ...draft, company: v })} />
-          <Field
-            label="Periodo (ej. 2022 — Presente)"
+          <BilingualField
+            label={t("admin.experienceEditor.role")}
+            value={draft.role}
+            editLang={editLang}
+            onChange={(v) => setDraft({ ...draft, role: v })}
+          />
+          <Field label={t("admin.experienceEditor.company")} value={draft.company} onChange={(v) => setDraft({ ...draft, company: v })} />
+          <BilingualField
+            label={t("admin.experienceEditor.period")}
             value={draft.period}
+            editLang={editLang}
             onChange={(v) => setDraft({ ...draft, period: v })}
           />
           <Field
-            label="Orden"
+            label={t("admin.experienceEditor.order")}
             value={draft.order_index}
             onChange={(v) => setDraft({ ...draft, order_index: Number(v) || 0 })}
           />
         </div>
-        <Field
-          label="Descripción"
+        <BilingualField
+          label={t("admin.experienceEditor.description")}
           value={draft.description}
+          editLang={editLang}
           onChange={(v) => setDraft({ ...draft, description: v })}
           textarea
         />
@@ -345,21 +511,60 @@ function ExperienceEditor() {
       </div>
 
       <div className="space-y-3">
-        {items.map((item) => (
-          <div key={item.id} className="card p-4 flex items-start justify-between gap-4">
-            <div>
-              <div className="font-mono text-xs text-accent">{item.period}</div>
-              <h3 className="font-display font-semibold">
-                {item.role} · {item.company}
-              </h3>
-              <p className="text-sm text-muted">{item.description}</p>
+        {items.map((item, idx) => (
+          <div key={item.id} className="card p-4 space-y-3">
+            <div className="flex items-start justify-between gap-4">
+              <div className="font-mono text-xs text-accent">{readBilingual(item.period, editLang)}</div>
+              <button
+                onClick={() => remove(item.id)}
+                className="font-mono text-xs text-muted hover:text-red-400"
+              >
+                {t("admin.delete")}
+              </button>
             </div>
-            <button
-              onClick={() => remove(item.id)}
-              className="font-mono text-xs text-muted hover:text-red-400"
-            >
-              Eliminar
-            </button>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <BilingualField
+                label={t("admin.experienceEditor.role")}
+                value={item.role}
+                editLang={editLang}
+                onChange={(v) => {
+                  const next = [...items];
+                  next[idx] = { ...item, role: v };
+                  setItems(next);
+                }}
+              />
+              <Field
+                label={t("admin.experienceEditor.company")}
+                value={item.company}
+                onChange={(v) => {
+                  const next = [...items];
+                  next[idx] = { ...item, company: v };
+                  setItems(next);
+                }}
+              />
+              <BilingualField
+                label={t("admin.experienceEditor.period")}
+                value={item.period}
+                editLang={editLang}
+                onChange={(v) => {
+                  const next = [...items];
+                  next[idx] = { ...item, period: v };
+                  setItems(next);
+                }}
+              />
+            </div>
+            <BilingualField
+              label={t("admin.experienceEditor.description")}
+              value={item.description}
+              editLang={editLang}
+              onChange={(v) => {
+                const next = [...items];
+                next[idx] = { ...item, description: v };
+                setItems(next);
+              }}
+              textarea
+            />
+            <SaveButton onClick={() => saveItem(items[idx])} />
           </div>
         ))}
       </div>

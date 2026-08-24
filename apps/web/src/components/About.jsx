@@ -1,16 +1,19 @@
+import { useLanguage } from "@/hooks/useLanguage";
+
 export default function About({ data }) {
+  const { t, pick } = useLanguage();
+  const paragraphs = pick(data?.paragraphs) || [];
+
   return (
     <section id="about" className="max-w-6xl mx-auto px-6 py-20 border-t border-border">
-      <span className="status-chip mb-6">Sobre mí</span>
+      <span className="status-chip mb-6">{t("about.eyebrow")}</span>
 
       {!data ? (
-        <p className="text-muted font-mono text-sm">
-          Esta sección todavía no tiene contenido. Complétala desde el panel admin.
-        </p>
+        <p className="text-muted font-mono text-sm">{t("about.empty")}</p>
       ) : (
         <div className="grid md:grid-cols-[1.2fr_0.8fr] gap-12 items-start">
           <div className="space-y-4 text-lg leading-relaxed text-foreground/90 max-w-2xl">
-            {(data.paragraphs || []).map((p, i) => (
+            {paragraphs.map((p, i) => (
               <p key={i}>{p}</p>
             ))}
           </div>
@@ -23,7 +26,7 @@ export default function About({ data }) {
                     {stat.value}
                   </div>
                   <div className="mt-1 font-mono text-xs uppercase tracking-wider text-muted">
-                    {stat.label}
+                    {pick(stat.label)}
                   </div>
                 </div>
               ))}

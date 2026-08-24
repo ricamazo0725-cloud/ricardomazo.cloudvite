@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
-
-// Para un cliente nuevo: cambia NAV, el nombre de marca y el footer.
-const NAV = [
-  { to: "#about", label: "Sobre mí" },
-  { to: "#services", label: "Servicios" },
-  { to: "#experience", label: "Experiencia" },
-  { to: "#contact", label: "Contacto" },
-];
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function Layout({ children }) {
   const [scrolled, setScrolled] = useState(false);
+  const { t, lang, toggleLang, locales } = useLanguage();
+
+  const NAV = [
+    { to: "#about", label: t("nav.about") },
+    { to: "#services", label: t("nav.services") },
+    { to: "#experience", label: t("nav.experience") },
+    { to: "#contact", label: t("nav.contact") },
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -39,12 +40,27 @@ export default function Layout({ children }) {
               </a>
             ))}
           </nav>
-          <a
-            href="#contact"
-            className="font-mono text-xs uppercase tracking-wider border border-border rounded px-3 py-1.5 hover:border-primary hover:text-primary transition-colors focus-ring"
-          >
-            Hablemos
-          </a>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={toggleLang}
+              aria-label={locales.map((l) => l.toUpperCase()).join(" / ")}
+              className="font-mono text-xs uppercase tracking-wider border border-border rounded px-2.5 py-1.5 text-muted hover:border-primary hover:text-primary transition-colors focus-ring"
+            >
+              {locales.map((l, i) => (
+                <span key={l} className={l === lang ? "text-foreground" : ""}>
+                  {l.toUpperCase()}
+                  {i < locales.length - 1 ? " / " : ""}
+                </span>
+              ))}
+            </button>
+            <a
+              href="#contact"
+              className="font-mono text-xs uppercase tracking-wider border border-border rounded px-3 py-1.5 hover:border-primary hover:text-primary transition-colors focus-ring"
+            >
+              {t("layout.cta")}
+            </a>
+          </div>
         </div>
       </header>
 
@@ -53,7 +69,7 @@ export default function Layout({ children }) {
       <footer className="border-t border-border">
         <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted font-mono">
           <span>© {new Date().getFullYear()} Ricardo Mazo</span>
-          <span>Ecosistemas Digitales &amp; Agentes de IA</span>
+          <span>{t("layout.footerTagline")}</span>
         </div>
       </footer>
     </div>

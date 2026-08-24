@@ -9,20 +9,23 @@ create table if not exists site_content (
   updated_at timestamptz not null default now()
 );
 
+-- title/description guardan { "es": "...", "en": "..." } para soportar multi-idioma.
 create table if not exists service_items (
   id uuid primary key default gen_random_uuid(),
-  title text not null,
-  description text,
+  title jsonb not null,
+  description jsonb,
   order_index int not null default 0,
   created_at timestamptz not null default now()
 );
 
+-- role/period/description guardan { "es": "...", "en": "..." }; company no se traduce
+-- (es un nombre propio) y sigue siendo texto plano.
 create table if not exists experience_items (
   id uuid primary key default gen_random_uuid(),
-  role text not null,
+  role jsonb not null,
   company text,
-  period text,
-  description text,
+  period jsonb,
+  description jsonb,
   order_index int not null default 0,
   created_at timestamptz not null default now()
 );
@@ -46,22 +49,36 @@ create policy "admin write service_items" on service_items
 create policy "admin write experience_items" on experience_items
   for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
--- Contenido inicial de ejemplo (bórralo o edítalo desde el panel admin)
+-- Contenido inicial de ejemplo (bórralo o edítalo desde el panel admin).
+-- Los campos de texto visibles al público se guardan como { "es": "...", "en": "..." }
+-- para que el sitio pueda mostrar cada idioma sin tocar la base de datos otra vez.
 insert into site_content (section, data) values
   ('hero', '{
-    "status": "Disponible para proyectos",
-    "title": "Ecosistemas Digitales & Agentes de IA",
-    "subtitle": "Ayudo a las empresas a escalar cerrando la brecha entre la complejidad operativa y la tecnología.",
-    "primaryCta": {"label": "Ver experiencia", "href": "#experience"},
-    "secondaryCta": {"label": "Ver servicios", "href": "#services"}
+    "status": {"es": "Disponible para proyectos", "en": "Available for projects"},
+    "title": {"es": "Ecosistemas Digitales & Agentes de IA", "en": "Digital Ecosystems & AI Agents"},
+    "subtitle": {
+      "es": "Ayudo a las empresas a escalar cerrando la brecha entre la complejidad operativa y la tecnología.",
+      "en": "I help businesses scale by closing the gap between operational complexity and technology."
+    },
+    "primaryCta": {"label": {"es": "Ver experiencia", "en": "View experience"}, "href": "#experience"},
+    "secondaryCta": {"label": {"es": "Ver servicios", "en": "View services"}, "href": "#services"}
   }'::jsonb),
   ('about', '{
-    "paragraphs": ["Soy un Líder de Estrategia Digital y Operaciones dedicado al diseño y automatización de ecosistemas de alta eficiencia."],
-    "stats": [{"value": "100%", "label": "Automatización & IA"}, {"value": "n8n", "label": "Sistemas integrados"}]
+    "paragraphs": {
+      "es": ["Soy un Líder de Estrategia Digital y Operaciones dedicado al diseño y automatización de ecosistemas de alta eficiencia."],
+      "en": ["I am a Digital Strategy and Operations Leader focused on designing and automating high-efficiency ecosystems."]
+    },
+    "stats": [
+      {"value": "100%", "label": {"es": "Automatización & IA", "en": "Automation & AI"}},
+      {"value": "n8n", "label": {"es": "Sistemas integrados", "en": "Integrated systems"}}
+    ]
   }'::jsonb),
   ('contact', '{
     "email": "tucorreo@ejemplo.com",
     "whatsapp": "573000000000",
-    "whatsappMessage": "Hola, vi tu portafolio y me gustaría hablar contigo."
+    "whatsappMessage": {
+      "es": "Hola, vi tu portafolio y me gustaría hablar contigo.",
+      "en": "Hi, I saw your portfolio and would like to talk to you."
+    }
   }'::jsonb)
 on conflict (section) do nothing;

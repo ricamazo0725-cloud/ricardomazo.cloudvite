@@ -1,8 +1,20 @@
-const NODES = [
-  { x: 30, y: 150, label: "CLIENTE" },
-  { x: 230, y: 60, label: "AGENTE IA" },
-  { x: 430, y: 150, label: "ERP / CRM" },
-  { x: 610, y: 60, label: "WHATSAPP" },
+import { useLanguage } from "@/hooks/useLanguage";
+
+const NODE_LABELS = {
+  es: ["CLIENTE", "AGENTE IA", "ERP / CRM", "WHATSAPP"],
+  en: ["CLIENT", "AI AGENT", "ERP / CRM", "WHATSAPP"],
+};
+
+const ARIA_LABEL = {
+  es: "Diagrama de flujo: cliente conectado a un agente de IA que sincroniza ERP, CRM y WhatsApp",
+  en: "Flow diagram: client connected to an AI agent that syncs ERP, CRM, and WhatsApp",
+};
+
+const POSITIONS = [
+  { x: 30, y: 150 },
+  { x: 230, y: 60 },
+  { x: 430, y: 150 },
+  { x: 610, y: 60 },
 ];
 
 const EDGES = [
@@ -17,12 +29,16 @@ function nodeCenter(n) {
 }
 
 export default function FlowDiagram() {
+  const { lang } = useLanguage();
+  const labels = NODE_LABELS[lang] || NODE_LABELS.es;
+  const NODES = POSITIONS.map((pos, i) => ({ ...pos, label: labels[i] }));
+
   return (
     <svg
       viewBox="0 0 690 220"
       className="w-full h-auto"
       role="img"
-      aria-label="Diagrama de flujo: cliente conectado a un agente de IA que sincroniza ERP, CRM y WhatsApp"
+      aria-label={ARIA_LABEL[lang] || ARIA_LABEL.es}
     >
       <g stroke="hsl(var(--border))" strokeWidth="1" fill="none">
         {EDGES.map(([a, b], i) => {

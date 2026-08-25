@@ -5,6 +5,7 @@ import About from "@/components/About";
 import Services from "@/components/Services";
 import Experience from "@/components/Experience";
 import Contact from "@/components/Contact";
+import WhatsAppButton from "@/components/WhatsAppButton";
 import { getAllSections } from "@/api/content";
 import { getServices } from "@/api/services";
 import { getExperience } from "@/api/experience";
@@ -44,6 +45,7 @@ export default function HomePage() {
       <Services items={services} />
       <Experience items={experience} />
       <Contact data={sections?.contact} />
+      <WhatsAppButton data={sections?.contact} />
     </Layout>
   );
 }

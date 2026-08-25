@@ -21,9 +21,8 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-screen flex flex-col">
       <header
-        className={`sticky top-0 z-40 transition-colors ${
-          scrolled ? "bg-background/90 backdrop-blur border-b border-border" : "bg-transparent"
-        }`}
+        className={`sticky top-0 z-40 transition-colors ${scrolled ? "bg-background/90 backdrop-blur border-b border-border" : "bg-transparent"
+          }`}
       >
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <a href="#top" className="font-display font-semibold tracking-tight text-lg">

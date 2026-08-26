@@ -10,6 +10,7 @@ export const translations = {
       services: "Servicios",
       experience: "Experiencia",
       contact: "Contacto",
+      blog: "Blog",
     },
     layout: {
       cta: "Hablemos",
@@ -41,6 +42,23 @@ export const translations = {
     },
     homePage: {
       loadError: "No se pudo cargar el contenido:",
+    },
+    blog: {
+      eyebrow: "Blog",
+      loading: "Cargando...",
+      empty: "Aún no hay publicaciones.",
+    },
+    automation: {
+      eyebrow: "Automatización en vivo",
+      title: "Este blog se escribe solo",
+      description:
+        "No escribo estos posts a mano. Cada día, un sistema automático revisa una fuente de contenido y publica algo nuevo sin que yo intervenga. Es el mismo tipo de solución que construyo para negocios: procesos que antes tomaban tiempo manual, ahora corren solos.",
+      steps: {
+        connect: "Se conecta a la NASA",
+        write: "Redacta el post",
+        publish: "Lo publica solo",
+        repeat: "Se repite cada día",
+      },
     },
     admin: {
       title: "Panel admin",
@@ -97,6 +115,7 @@ export const translations = {
       services: "Services",
       experience: "Experience",
       contact: "Contact",
+      blog: "Blog",
     },
     layout: {
       cta: "Let's talk",
@@ -128,6 +147,23 @@ export const translations = {
     },
     homePage: {
       loadError: "Couldn't load content:",
+    },
+    blog: {
+      eyebrow: "Blog",
+      loading: "Loading...",
+      empty: "No posts yet.",
+    },
+    automation: {
+      eyebrow: "Live automation",
+      title: "This blog writes itself",
+      description:
+        "I don't write these posts by hand. Every day, an automated system checks a content source and publishes something new without me stepping in. It's the same kind of solution I build for businesses: processes that used to take manual time now run on their own.",
+      steps: {
+        connect: "Connects to NASA",
+        write: "Writes the post",
+        publish: "Publishes on its own",
+        repeat: "Repeats every day",
+      },
     },
     admin: {
       title: "Admin panel",

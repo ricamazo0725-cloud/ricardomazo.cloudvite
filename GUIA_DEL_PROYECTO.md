@@ -156,6 +156,21 @@ Componente `Blog.jsx`
   lectura pública — la escritura la hace la Edge Function con la
   `service_role`/`secret key`, nunca el navegador del visitante).
 
+### Presentación como pieza de portafolio
+
+Para que el blog no se vea como "un post random" sino como evidencia en vivo
+de trabajo de automatización:
+
+- **Badge "Auto-generado"**: en `Blog.jsx`, cada `<article>` cuyo post tenga
+  `source` (ej. "NASA APOD") muestra una etiqueta con un punto pulsante en la
+  esquina superior derecha de la tarjeta. Los posts manuales (sin `source`)
+  no la muestran.
+- **`src/components/AutomationShowcase.jsx`**: sección colocada justo antes
+  de `<Blog />` en `App.jsx`. Explica en lenguaje simple el pipeline
+  (cron → NASA API → Edge Function → tabla → publicado) con una fila de pasos
+  conectados por flechas. Es la pieza que le da contexto al visitante antes
+  de ver los posts.
+
 ### Si necesitas tocar esto
 
 - Cambiar la hora del cron: `select cron.alter_job(job_id, schedule => '...');`

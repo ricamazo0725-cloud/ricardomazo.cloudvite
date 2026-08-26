@@ -5,6 +5,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import HomePage from "@/pages/HomePage";
 import AdminLoginPage from "@/pages/AdminLoginPage";
 import AdminDashboardPage from "@/pages/AdminDashboardPage";
+import BlogPage from "@/pages/BlogPage";
+import BlogPostPage from "@/pages/BlogPostPage";
 
 export default function App() {
   return (
@@ -22,6 +24,8 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:slug" element={<BlogPostPage />} />
           </Routes>
         </AuthProvider>
       </LanguageProvider>

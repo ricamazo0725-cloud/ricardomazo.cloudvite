@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 
 export default function Services({ items }) {
@@ -21,6 +22,26 @@ export default function Services({ items }) {
               <p className="text-sm text-muted leading-relaxed">{pick(item.description)}</p>
             </div>
           ))}
+
+          <Link
+            to="/blog"
+            className="card p-6 flex flex-col gap-3 hover:border-primary transition-colors"
+          >
+            <div className="font-mono text-xs text-accent tracking-wider">
+              SRV/{String(items.length).padStart(2, "0")}
+            </div>
+            <h3 className="font-display font-semibold text-lg">
+              Contenido que se escribe solo
+            </h3>
+            <p className="text-sm text-muted leading-relaxed">
+              Diseño sistemas que generan y publican contenido automáticamente,
+              sin trabajo manual diario. Este sitio tiene un ejemplo funcionando
+              en vivo.
+            </p>
+            <span className="font-mono text-xs uppercase tracking-wider text-primary mt-auto">
+              Ver ejemplo en vivo →
+            </span>
+          </Link>
         </div>
       )}
     </section>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 
 export default function Layout({ children }) {
@@ -6,10 +7,11 @@ export default function Layout({ children }) {
   const { t, lang, toggleLang, locales } = useLanguage();
 
   const NAV = [
-    { to: "#about", label: t("nav.about") },
-    { to: "#services", label: t("nav.services") },
-    { to: "#experience", label: t("nav.experience") },
-    { to: "#contact", label: t("nav.contact") },
+    { to: "/#about", label: t("nav.about") },
+    { to: "/#services", label: t("nav.services") },
+    { to: "/#experience", label: t("nav.experience") },
+    { to: "/blog", label: t("nav.blog"), isRoute: true },
+    { to: "/#contact", label: t("nav.contact") },
   ];
 
   useEffect(() => {
@@ -25,19 +27,29 @@ export default function Layout({ children }) {
           }`}
       >
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <a href="#top" className="font-display font-semibold tracking-tight text-lg">
+          <a href="/#top" className="font-display font-semibold tracking-tight text-lg">
             Ricardo Mazo
           </a>
           <nav className="hidden md:flex items-center gap-8 font-mono text-xs uppercase tracking-wider text-muted">
-            {NAV.map((item) => (
-              <a
-                key={item.to}
-                href={item.to}
-                className="hover:text-foreground transition-colors focus-ring rounded"
-              >
-                {item.label}
-              </a>
-            ))}
+            {NAV.map((item) =>
+              item.isRoute ? (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className="hover:text-foreground transition-colors focus-ring rounded"
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <a
+                  key={item.to}
+                  href={item.to}
+                  className="hover:text-foreground transition-colors focus-ring rounded"
+                >
+                  {item.label}
+                </a>
+              )
+            )}
           </nav>
           <div className="flex items-center gap-3">
             <button
@@ -54,7 +66,7 @@ export default function Layout({ children }) {
               ))}
             </button>
             <a
-              href="#contact"
+              href="/#contact"
               className="font-mono text-xs uppercase tracking-wider border border-border rounded px-3 py-1.5 hover:border-primary hover:text-primary transition-colors focus-ring"
             >
               {t("layout.cta")}

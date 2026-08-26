@@ -10,7 +10,7 @@ import { getAllSections } from "@/api/content";
 import { getServices } from "@/api/services";
 import { getExperience } from "@/api/experience";
 import { useLanguage } from "@/hooks/useLanguage";
-import Blog from "@/components/Blog";
+
 
 export default function HomePage() {
   const { t } = useLanguage();
@@ -43,7 +43,7 @@ export default function HomePage() {
     <Layout>
       <Hero data={sections?.hero} />
       <About data={sections?.about} />
-      <Blog />
+
       <Services items={services} />
       <Experience items={experience} />
       <Contact data={sections?.contact} />

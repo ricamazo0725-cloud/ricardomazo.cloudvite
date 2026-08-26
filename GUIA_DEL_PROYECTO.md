@@ -113,3 +113,56 @@ El sitio soporta español e inglés:
 - `apps/web/supabase/schema.sql`: se corre una sola vez por proyecto de
   Supabase nuevo. Si necesitas un campo nuevo, agrégalo con una migración
   aparte en vez de editar este archivo después de haberlo corrido.
+
+## 8. Blog automático — categoría "ciencia" (NASA APOD)
+
+El sitio incluye una sección de blog que se alimenta sola, todos los días, sin
+intervención manual. Usa la API pública de la NASA (Astronomy Picture of the
+Day) como fuente de contenido para la categoría "ciencia".
+
+### Cómo funciona
+
+```
+pg_cron (Supabase)
+      │  todos los días a las 6:00 AM UTC (1:00 AM Colombia)
+      ▼
+Edge Function `nasa-daily-post`
+      │  hace fetch a https://api.nasa.gov/planetary/apod
+      ▼
+Tabla `blog_posts` (Postgres)
+      │  upsert por slug (apod-YYYY-MM-DD), evita duplicados
+      ▼
+Componente `Blog.jsx`
+      lee blog_posts con category = 'ciencia' y lo muestra en el sitio
+```
+
+### Piezas involucradas
+
+- **Tabla**: `blog_posts` (agregada aparte de `schema.sql` — ver sección 7,
+  no se re-corrió el schema original, se agregó como migración nueva).
+  Columnas clave: `slug`, `category`, `title`/`excerpt`/`content` (bilingües,
+  mismo formato `{ "es": "...", "en": "..." }` que el resto del sitio),
+  `cover_image`, `source`, `published`.
+- **Edge Function**: `apps/web/supabase/functions/nasa-daily-post/index.ts`.
+  Corre en el servidor de Supabase (no en el navegador del visitante), por
+  eso no choca con la Content-Security-Policy del `.htaccess`.
+- **Secreto**: `NASA_API_KEY`, guardado con `supabase secrets set` — nunca
+  vive en el código ni en `.env` del frontend.
+- **Cron job**: `nasa-daily-post-job`, programado con `pg_cron` + `pg_net`
+  (extensiones activadas en Database → Extensions). Se ve/edita corriendo
+  `select * from cron.job;` en el SQL Editor.
+- **Frontend**: `src/components/Blog.jsx`, reutiliza `src/lib/supabaseClient.js`
+  (el mismo cliente `anon` del resto del sitio, porque el blog solo necesita
+  lectura pública — la escritura la hace la Edge Function con la
+  `service_role`/`secret key`, nunca el navegador del visitante).
+
+### Si necesitas tocar esto
+
+- Cambiar la hora del cron: `select cron.alter_job(job_id, schedule => '...');`
+  o borrar y volver a crear el job con `cron.schedule`.
+- Agregar otra categoría con otra fuente: crea otra Edge Function nueva,
+  reutiliza la misma tabla `blog_posts` cambiando el valor de `category`.
+- Si rotas la `NASA_API_KEY` o la secret key de Supabase, no hace falta
+  redesplegar el frontend — solo actualiza el secreto con
+  `supabase secrets set` y, si cambiaste la key usada en el cron, vuelve a
+  programar el job con la nueva key en el header `Authorization`.

@@ -1,5 +1,4 @@
 import { useLanguage } from "@/hooks/useLanguage";
-import NasaPictureOfDay from "./NasaPictureOfDay";
 
 export default function About({ data }) {
   const { t, pick } = useLanguage();
@@ -19,24 +18,20 @@ export default function About({ data }) {
             ))}
           </div>
 
-          <div className="space-y-6">
-            {data.stats?.length > 0 && (
-              <div className="grid grid-cols-2 gap-4">
-                {data.stats.map((stat, i) => (
-                  <div key={i} className="card p-5">
-                    <div className="font-display font-semibold text-2xl text-primary">
-                      {stat.value}
-                    </div>
-                    <div className="mt-1 font-mono text-xs uppercase tracking-wider text-muted">
-                      {pick(stat.label)}
-                    </div>
+          {data.stats?.length > 0 && (
+            <div className="grid grid-cols-2 gap-4">
+              {data.stats.map((stat, i) => (
+                <div key={i} className="card p-5">
+                  <div className="font-display font-semibold text-2xl text-primary">
+                    {stat.value}
                   </div>
-                ))}
-              </div>
-            )}
-
-            <NasaPictureOfDay />
-          </div>
+                  <div className="mt-1 font-mono text-xs uppercase tracking-wider text-muted">
+                    {pick(stat.label)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </section>

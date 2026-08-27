@@ -104,6 +104,14 @@ El sitio soporta español e inglés:
 - Si ya tenías contenido cargado en Supabase con el schema viejo (texto plano),
   corre `apps/web/supabase/migration_i18n.sql` una sola vez en el SQL Editor de
   Supabase para migrarlo al nuevo formato antes de desplegar este cambio.
+- **Servicios con enlace** (ej. la tarjeta "Ver ejemplo en vivo" que antes estaba
+  quemada en `Services.jsx`): cada servicio puede tener un `link` opcional
+  (`{ label: {es,en}, href }`), editable desde `/admin → Servicios` igual que
+  título y descripción — ya no hace falta tocar código para cambiar ese texto
+  ni para agregar/quitar el enlace. Si tu proyecto de Supabase ya existía antes
+  de este cambio, corre `apps/web/supabase/migration_service_link.sql` una sola
+  vez en el SQL Editor: agrega la columna `link` y, si aplica, migra la tarjeta
+  que antes estaba quemada en el código a un registro editable.
 
 ## 7. Qué no tocar
 

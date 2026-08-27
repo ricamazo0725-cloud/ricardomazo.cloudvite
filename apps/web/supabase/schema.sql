@@ -14,6 +14,10 @@ create table if not exists service_items (
   id uuid primary key default gen_random_uuid(),
   title jsonb not null,
   description jsonb,
+  -- Enlace opcional de la tarjeta (ej. "Ver ejemplo en vivo" -> /blog).
+  -- Mismo formato que hero.primaryCta/secondaryCta: { "label": {"es":"...","en":"..."}, "href": "..." }.
+  -- Si es null, la tarjeta se muestra sin enlace (comportamiento actual).
+  link jsonb,
   order_index int not null default 0,
   created_at timestamptz not null default now()
 );

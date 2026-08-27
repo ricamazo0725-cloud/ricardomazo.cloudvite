@@ -354,10 +354,38 @@ function SaveButton({ onClick }) {
   );
 }
 
+// Enlace opcional de una tarjeta de servicio (ej. "Ver ejemplo en vivo" -> /blog).
+// Mismo formato que hero.primaryCta/secondaryCta: { label: {es,en}, href: "..." }.
+// Si href queda vacío al guardar, no se manda link (la tarjeta se ve sin enlace).
+function cleanLink(link) {
+  if (!link || !link.href) return null;
+  return link;
+}
+
+function ServiceLinkFields({ link, editLang, onChange }) {
+  const { t } = useLanguage();
+  const current = link || { label: {}, href: "" };
+  return (
+    <div className="grid sm:grid-cols-2 gap-4 pt-2 border-t border-border">
+      <BilingualField
+        label={t("admin.servicesEditor.linkLabel")}
+        value={current.label}
+        editLang={editLang}
+        onChange={(v) => onChange({ ...current, label: v })}
+      />
+      <Field
+        label={t("admin.servicesEditor.linkHref")}
+        value={current.href}
+        onChange={(v) => onChange({ ...current, href: v })}
+      />
+    </div>
+  );
+}
+
 function ServicesEditor({ editLang }) {
   const { t } = useLanguage();
   const [items, setItems] = useState([]);
-  const [draft, setDraft] = useState({ title: {}, description: {}, order_index: 0 });
+  const [draft, setDraft] = useState({ title: {}, description: {}, order_index: 0, link: { label: {}, href: "" } });
 
   function refresh() {
     getServices().then(setItems);
@@ -366,8 +394,8 @@ function ServicesEditor({ editLang }) {
 
   async function add() {
     if (!readBilingual(draft.title, editLang)) return;
-    await createService(draft);
-    setDraft({ title: {}, description: {}, order_index: 0 });
+    await createService({ ...draft, link: cleanLink(draft.link) });
+    setDraft({ title: {}, description: {}, order_index: 0, link: { label: {}, href: "" } });
     refresh();
   }
   async function remove(id) {
@@ -375,7 +403,12 @@ function ServicesEditor({ editLang }) {
     refresh();
   }
   async function saveItem(item) {
-    await updateService(item.id, { title: item.title, description: item.description, order_index: item.order_index });
+    await updateService(item.id, {
+      title: item.title,
+      description: item.description,
+      order_index: item.order_index,
+      link: cleanLink(item.link),
+    });
     refresh();
   }
 
@@ -400,6 +433,11 @@ function ServicesEditor({ editLang }) {
           label={t("admin.servicesEditor.order")}
           value={draft.order_index}
           onChange={(v) => setDraft({ ...draft, order_index: Number(v) || 0 })}
+        />
+        <ServiceLinkFields
+          link={draft.link}
+          editLang={editLang}
+          onChange={(link) => setDraft({ ...draft, link })}
         />
         <SaveButton onClick={add} />
       </div>
@@ -436,6 +474,15 @@ function ServicesEditor({ editLang }) {
                 setItems(next);
               }}
               textarea
+            />
+            <ServiceLinkFields
+              link={item.link || { label: {}, href: "" }}
+              editLang={editLang}
+              onChange={(link) => {
+                const next = [...items];
+                next[idx] = { ...item, link };
+                setItems(next);
+              }}
             />
             <SaveButton onClick={() => saveItem(items[idx])} />
           </div>

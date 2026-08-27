@@ -1,6 +1,12 @@
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 
+// "/blog" -> ruta interna (navegación SPA con react-router).
+// "https://..." o "#..." -> se deja como <a> normal.
+function isInternalPath(href) {
+  return typeof href === "string" && href.startsWith("/") && !href.startsWith("//");
+}
+
 export default function Services({ items }) {
   const { t, pick } = useLanguage();
 
@@ -15,33 +21,45 @@ export default function Services({ items }) {
         <p className="text-muted font-mono text-sm">{t("services.empty")}</p>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item) => (
-            <div key={item.id} className="card p-6 flex flex-col gap-3">
-              <div className="font-mono text-xs text-accent tracking-wider">SRV/{String(item.order_index ?? 0).padStart(2, "0")}</div>
-              <h3 className="font-display font-semibold text-lg">{pick(item.title)}</h3>
-              <p className="text-sm text-muted leading-relaxed">{pick(item.description)}</p>
-            </div>
-          ))}
+          {items.map((item) => {
+            const href = item.link?.href;
+            const linkLabel = pick(item.link?.label);
+            const cardClass =
+              "card p-6 flex flex-col gap-3" + (href ? " hover:border-primary transition-colors" : "");
 
-          <Link
-            to="/blog"
-            className="card p-6 flex flex-col gap-3 hover:border-primary transition-colors"
-          >
-            <div className="font-mono text-xs text-accent tracking-wider">
-              SRV/{String(items.length).padStart(2, "0")}
-            </div>
-            <h3 className="font-display font-semibold text-lg">
-              Contenido que se escribe solo
-            </h3>
-            <p className="text-sm text-muted leading-relaxed">
-              Diseño sistemas que generan y publican contenido automáticamente,
-              sin trabajo manual diario. Este sitio tiene un ejemplo funcionando
-              en vivo.
-            </p>
-            <span className="font-mono text-xs uppercase tracking-wider text-primary mt-auto">
-              Ver ejemplo en vivo →
-            </span>
-          </Link>
+            const cardBody = (
+              <>
+                <div className="font-mono text-xs text-accent tracking-wider">
+                  SRV/{String(item.order_index ?? 0).padStart(2, "0")}
+                </div>
+                <h3 className="font-display font-semibold text-lg">{pick(item.title)}</h3>
+                <p className="text-sm text-muted leading-relaxed">{pick(item.description)}</p>
+                {href && linkLabel && (
+                  <span className="font-mono text-xs uppercase tracking-wider text-primary mt-auto">
+                    {linkLabel}
+                  </span>
+                )}
+              </>
+            );
+
+            if (!href) {
+              return (
+                <div key={item.id} className={cardClass}>
+                  {cardBody}
+                </div>
+              );
+            }
+
+            return isInternalPath(href) ? (
+              <Link key={item.id} to={href} className={cardClass}>
+                {cardBody}
+              </Link>
+            ) : (
+              <a key={item.id} href={href} className={cardClass}>
+                {cardBody}
+              </a>
+            );
+          })}
         </div>
       )}
     </section>

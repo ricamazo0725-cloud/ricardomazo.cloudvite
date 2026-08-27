@@ -98,6 +98,8 @@ export const translations = {
         fieldTitle: "Título",
         fieldDescription: "Descripción",
         order: "Orden",
+        linkLabel: "Texto del enlace (opcional)",
+        linkHref: "URL o ruta del enlace (ej. /blog o https://...)",
       },
       experienceEditor: {
         newTitle: "Nueva experiencia",
@@ -203,6 +205,8 @@ export const translations = {
         fieldTitle: "Title",
         fieldDescription: "Description",
         order: "Order",
+        linkLabel: "Link text (optional)",
+        linkHref: "Link URL or path (e.g. /blog or https://...)",
       },
       experienceEditor: {
         newTitle: "New experience",

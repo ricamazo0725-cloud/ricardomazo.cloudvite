@@ -22,7 +22,7 @@ export default function Experience({ items }) {
                 <h3 className="font-display font-semibold text-xl">{pick(item.role)}</h3>
                 <div className="text-sm text-muted mb-2">{item.company}</div>
                 {description && (
-                  <p className="text-sm leading-relaxed text-foreground/80 max-w-2xl">
+                  <p className="text-sm leading-relaxed text-foreground/80">
                     {description}
                   </p>
                 )}

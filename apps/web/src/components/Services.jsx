@@ -25,14 +25,16 @@ export default function Services({ items }) {
             const href = item.link?.href;
             const linkLabel = pick(item.link?.label);
             const cardClass =
-              "card p-6 flex flex-col gap-3" + (href ? " hover:border-primary transition-colors" : "");
+              "card relative p-6 sm:p-8 flex flex-col gap-3" +
+              (href ? " hover:border-primary transition-colors" : "");
+            const cardStyle = { borderRadius: "1.25rem" };
 
             const cardBody = (
               <>
-                <div className="font-mono text-xs text-accent tracking-wider">
-                  SRV/{String(item.order_index ?? 0).padStart(2, "0")}
+                <div className="absolute top-6 right-8 font-mono text-xs text-muted tracking-wider">
+                  {String(item.order_index ?? 0).padStart(2, "0")}
                 </div>
-                <h3 className="font-display font-semibold text-lg">{pick(item.title)}</h3>
+                <h3 className="font-display font-semibold text-xl">{pick(item.title)}</h3>
                 <p className="text-sm text-muted leading-relaxed">{pick(item.description)}</p>
                 {href && linkLabel && (
                   <span className="font-mono text-xs uppercase tracking-wider text-primary mt-auto">
@@ -44,18 +46,18 @@ export default function Services({ items }) {
 
             if (!href) {
               return (
-                <div key={item.id} className={cardClass}>
+                <div key={item.id} className={cardClass} style={cardStyle}>
                   {cardBody}
                 </div>
               );
             }
 
             return isInternalPath(href) ? (
-              <Link key={item.id} to={href} className={cardClass}>
+              <Link key={item.id} to={href} className={cardClass} style={cardStyle}>
                 {cardBody}
               </Link>
             ) : (
-              <a key={item.id} href={href} className={cardClass}>
+              <a key={item.id} href={href} className={cardClass} style={cardStyle}>
                 {cardBody}
               </a>
             );

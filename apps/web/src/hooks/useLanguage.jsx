@@ -30,6 +30,10 @@ export function localize(value, lang) {
     if (lang in value || DEFAULT_LOCALE in value) {
       return value[lang] ?? value[DEFAULT_LOCALE] ?? value[LOCALES.find((l) => value[l])] ?? "";
     }
+    // Objeto sin ninguna clave de idioma (ej. {} recien creado desde el admin
+    // sin llenar todavia) -- nunca devolver el objeto crudo, React no puede
+    // renderizarlo como hijo y la pagina se rompe entera.
+    return "";
   }
   return value;
 }

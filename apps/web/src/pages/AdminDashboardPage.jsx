@@ -14,11 +14,17 @@ import {
   updateExperience,
   deleteExperience,
 } from "@/api/experience";
+import {
+  getProjects,
+  createProject,
+  updateProject,
+  deleteProject,
+} from "@/api/projects";
 
 export default function AdminDashboardPage() {
   const { signOut } = useAuth();
   const { t, locales } = useLanguage();
-  const TABS = [t("admin.tabs.content"), t("admin.tabs.services"), t("admin.tabs.experience")];
+  const TABS = [t("admin.tabs.content"), t("admin.tabs.services"), t("admin.tabs.experience"), t("admin.tabs.projects")];
   const [tab, setTab] = useState(TABS[0]);
   // Idioma que se está editando en los campos bilingües del panel (independiente
   // del idioma en que el propio admin ve su interfaz).
@@ -61,6 +67,7 @@ export default function AdminDashboardPage() {
         {tab === TABS[0] && <ContentEditor editLang={editLang} />}
         {tab === TABS[1] && <ServicesEditor editLang={editLang} />}
         {tab === TABS[2] && <ExperienceEditor editLang={editLang} />}
+        {tab === TABS[3] && <ProjectsEditor editLang={editLang} />}
       </div>
     </div>
   );
@@ -481,6 +488,144 @@ function ServicesEditor({ editLang }) {
               onChange={(link) => {
                 const next = [...items];
                 next[idx] = { ...item, link };
+                setItems(next);
+              }}
+            />
+            <SaveButton onClick={() => saveItem(items[idx])} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ProjectsEditor({ editLang }) {
+  const { t } = useLanguage();
+  const [items, setItems] = useState([]);
+  const [draft, setDraft] = useState({ title: {}, description: {}, tag: "", url: "", order_index: 0 });
+
+  function refresh() {
+    getProjects().then(setItems);
+  }
+  useEffect(refresh, []);
+
+  async function add() {
+    if (!readBilingual(draft.title, editLang)) return;
+    await createProject(draft);
+    setDraft({ title: {}, description: {}, tag: "", url: "", order_index: 0 });
+    refresh();
+  }
+  async function remove(id) {
+    await deleteProject(id);
+    refresh();
+  }
+  async function saveItem(item) {
+    await updateProject(item.id, {
+      title: item.title,
+      description: item.description,
+      tag: item.tag,
+      url: item.url,
+      order_index: item.order_index,
+    });
+    refresh();
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="card p-6 space-y-3">
+        <h2 className="font-display font-semibold text-lg">{t("admin.projectsEditor.newTitle")}</h2>
+        <BilingualField
+          label={t("admin.projectsEditor.fieldTitle")}
+          value={draft.title}
+          editLang={editLang}
+          onChange={(v) => setDraft({ ...draft, title: v })}
+        />
+        <BilingualField
+          label={t("admin.projectsEditor.fieldDescription")}
+          value={draft.description}
+          editLang={editLang}
+          onChange={(v) => setDraft({ ...draft, description: v })}
+          textarea
+        />
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Field
+            label={t("admin.projectsEditor.fieldTag")}
+            value={draft.tag}
+            onChange={(v) => setDraft({ ...draft, tag: v })}
+          />
+          <Field
+            label={t("admin.projectsEditor.fieldUrl")}
+            value={draft.url}
+            onChange={(v) => setDraft({ ...draft, url: v })}
+          />
+        </div>
+        <Field
+          label={t("admin.projectsEditor.order")}
+          value={draft.order_index}
+          onChange={(v) => setDraft({ ...draft, order_index: Number(v) || 0 })}
+        />
+        <SaveButton onClick={add} />
+      </div>
+
+      <div className="space-y-3">
+        {items.map((item, idx) => (
+          <div key={item.id} className="card p-4 space-y-3">
+            <div className="flex items-start justify-between gap-4">
+              <div className="font-mono text-xs text-accent">#{item.order_index}</div>
+              <button
+                onClick={() => remove(item.id)}
+                className="font-mono text-xs text-muted hover:text-red-400"
+              >
+                {t("admin.delete")}
+              </button>
+            </div>
+            <BilingualField
+              label={t("admin.projectsEditor.fieldTitle")}
+              value={item.title}
+              editLang={editLang}
+              onChange={(v) => {
+                const next = [...items];
+                next[idx] = { ...item, title: v };
+                setItems(next);
+              }}
+            />
+            <BilingualField
+              label={t("admin.projectsEditor.fieldDescription")}
+              value={item.description}
+              editLang={editLang}
+              onChange={(v) => {
+                const next = [...items];
+                next[idx] = { ...item, description: v };
+                setItems(next);
+              }}
+              textarea
+            />
+            <div className="grid sm:grid-cols-2 gap-4">
+              <Field
+                label={t("admin.projectsEditor.fieldTag")}
+                value={item.tag}
+                onChange={(v) => {
+                  const next = [...items];
+                  next[idx] = { ...item, tag: v };
+                  setItems(next);
+                }}
+              />
+              <Field
+                label={t("admin.projectsEditor.fieldUrl")}
+                value={item.url}
+                onChange={(v) => {
+                  const next = [...items];
+                  next[idx] = { ...item, url: v };
+                  setItems(next);
+                }}
+              />
+            </div>
+            <Field
+              label={t("admin.projectsEditor.order")}
+              value={item.order_index}
+              onChange={(v) => {
+                const next = [...items];
+                next[idx] = { ...item, order_index: Number(v) || 0 };
                 setItems(next);
               }}
             />

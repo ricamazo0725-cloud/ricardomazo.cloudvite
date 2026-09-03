@@ -1,0 +1,9 @@
+# Ricardo Mazo — Digital Strategist & Solutions Developer
+
+> Ricardo Mazo — Estrategia Digital, Agentes de IA y Automatización. Panel de control de un especialista en integrar sistemas.
+
+## Secciones Principales
+
+- [Página Principal](https://ricardomazo.cloud/): Presentación, servicios, experiencia y contacto.
+- [Blog](https://ricardomazo.cloud/blog): Publicaciones sobre estrategia digital, IA y automatización, incluyendo una sección de ciencia alimentada a diario por la API de la NASA.
+- [Proyectos](https://ricardomazo.cloud/proyectos): Ejemplos de landing pages, integraciones y automatizaciones.

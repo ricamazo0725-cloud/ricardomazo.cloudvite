@@ -1,47 +1,31 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { DEFAULT_LOCALE, LOCALES, translations } from "@/i18n/translations";
+import { createContext, useContext, useMemo } from "react";
+import { LOCALES, translations } from "@/i18n/translations";
 import { localize } from "@/i18n/localize";
 
 export { localize };
 
-const STORAGE_KEY = "site_lang";
 const LanguageContext = createContext(null);
-
-function detectInitialLang() {
-  if (typeof window === "undefined") return DEFAULT_LOCALE;
-  const stored = window.localStorage.getItem(STORAGE_KEY);
-  if (stored && LOCALES.includes(stored)) return stored;
-  const browserLang = window.navigator.language?.slice(0, 2);
-  if (browserLang && LOCALES.includes(browserLang)) return browserLang;
-  return DEFAULT_LOCALE;
-}
 
 function getPath(obj, path) {
   return path.split(".").reduce((acc, key) => (acc == null ? acc : acc[key]), obj);
 }
 
-export function LanguageProvider({ children }) {
-  const [lang, setLangState] = useState(detectInitialLang);
-
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, lang);
-    document.documentElement.lang = lang;
-  }, [lang]);
-
-  function setLang(next) {
-    if (LOCALES.includes(next)) setLangState(next);
-  }
-
-  function toggleLang() {
-    const idx = LOCALES.indexOf(lang);
-    setLangState(LOCALES[(idx + 1) % LOCALES.length]);
-  }
+/**
+ * El idioma ya no es un estado que el usuario cambia en el cliente (eso
+ * rompía el SEO: una sola URL podía mostrar dos idiomas distintos según
+ * localStorage, lo cual hace inválido cualquier hreflang). Ahora cada URL
+ * tiene un idioma fijo -- / y sus rutas son español, /en/... es inglés --
+ * decidido en el servidor por app/layout.js a partir del pathname (ver
+ * middleware.js). `locale` llega desde ahí como prop obligatoria.
+ */
+export function LanguageProvider({ children, locale }) {
+  const lang = LOCALES.includes(locale) ? locale : LOCALES[0];
 
   const t = useMemo(() => {
     return (key) => {
-      const value = getPath(translations[lang], key) ?? getPath(translations[DEFAULT_LOCALE], key);
+      const value = getPath(translations[lang], key) ?? getPath(translations[LOCALES[0]], key);
       return value ?? key;
     };
   }, [lang]);
@@ -50,10 +34,7 @@ export function LanguageProvider({ children }) {
     return (value) => localize(value, lang);
   }, [lang]);
 
-  const value = useMemo(
-    () => ({ lang, setLang, toggleLang, t, pick, locales: LOCALES }),
-    [lang, t, pick]
-  );
+  const value = useMemo(() => ({ lang, t, pick, locales: LOCALES }), [lang, t, pick]);
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }

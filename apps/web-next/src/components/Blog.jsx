@@ -7,6 +7,7 @@ import Link from "next/link";
 
 export default function Blog({ initialPosts }) {
     const { t, pick, lang } = useLanguage();
+    const basePrefix = lang === "en" ? "/en" : "";
     const [posts, setPosts] = useState(initialPosts || []);
     const [loading, setLoading] = useState(!initialPosts);
     const [category, setCategory] = useState("todas");
@@ -69,7 +70,7 @@ export default function Blog({ initialPosts }) {
             ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {posts.map((post) => (
-                        <Link key={post.id} href={`/blog/${post.slug}`} className="block h-full">
+                        <Link key={post.id} href={`${basePrefix}/blog/${post.slug}`} className="block h-full">
                             <article className="card overflow-hidden flex flex-col relative h-full hover:border-primary transition-colors">
                                 {post.source && (
                                     <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 bg-background/90 backdrop-blur border border-primary/40 rounded-full px-2.5 py-1">

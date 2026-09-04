@@ -20,7 +20,8 @@ const VOICE_LANG = {
 
 export default function BlogPostPage({ initialPost }) {
     const { slug } = useParams();
-    const { pick, lang } = useLanguage();
+    const { pick, lang, t } = useLanguage();
+    const basePrefix = lang === "en" ? "/en" : "";
     const [post, setPost] = useState(initialPost ?? null);
     const [loading, setLoading] = useState(!initialPost);
     const [notFound, setNotFound] = useState(false);
@@ -198,10 +199,10 @@ export default function BlogPostPage({ initialPost }) {
         <Layout>
             <div className="max-w-3xl mx-auto px-6 pt-24 pb-20">
                 <Link
-                    href="/blog"
+                    href={`${basePrefix}/blog`}
                     className="font-mono text-xs uppercase tracking-wider text-muted hover:text-foreground transition-colors"
                 >
-                    ← Volver al blog
+                    {t("nav.backBlog")}
                 </Link>
 
                 {loading ? (

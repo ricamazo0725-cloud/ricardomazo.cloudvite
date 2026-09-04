@@ -11,7 +11,8 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { getProjects } from "@/api/projects";
 
 export default function ProjectsPage({ initialItems, initialError }) {
-  const { t, pick } = useLanguage();
+  const { t, pick, lang } = useLanguage();
+  const basePrefix = lang === "en" ? "/en" : "";
   const [items, setItems] = useState(initialItems ?? null);
   const [error, setError] = useState(initialError ?? null);
 
@@ -26,10 +27,10 @@ export default function ProjectsPage({ initialItems, initialError }) {
     <Layout>
       <div className="max-w-6xl mx-auto px-6 pt-24 pb-4">
         <Link
-          href="/"
+          href={basePrefix || "/"}
           className="font-mono text-xs uppercase tracking-wider text-muted hover:text-foreground"
         >
-          {"\u2190"} Volver al inicio
+          {t("nav.backHome")}
         </Link>
       </div>
 

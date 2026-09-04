@@ -11,6 +11,8 @@ export const translations = {
       experience: "Experiencia",
       contact: "Contacto",
       blog: "Blog",
+      backHome: "← Volver al inicio",
+      backBlog: "← Volver al blog",
     },
     layout: {
       cta: "Hablemos",
@@ -135,6 +137,8 @@ export const translations = {
       experience: "Experience",
       contact: "Contact",
       blog: "Blog",
+      backHome: "← Back to home",
+      backBlog: "← Back to blog",
     },
     layout: {
       cta: "Let's talk",

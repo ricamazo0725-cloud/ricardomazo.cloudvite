@@ -1,15 +1,15 @@
 import ProjectsScreen from "@/screens/ProjectsScreen";
 import { getProjects } from "@/api/projects";
 
-export const revalidate = 60;
-
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://ricardomazo.cloud";
 
+export const revalidate = 60;
+
 export const metadata = {
-  title: "Proyectos",
-  description: "Proyectos y ejemplos de landing pages, integraciones y automatizaciones construidas por Ricardo Mazo.",
+  title: "Projects",
+  description: "Projects and examples of landing pages, integrations and automations built by Ricardo Mazo.",
   alternates: {
-    canonical: "/proyectos",
+    canonical: `${siteUrl}/en/proyectos`,
     languages: {
       es: `${siteUrl}/proyectos`,
       en: `${siteUrl}/en/proyectos`,

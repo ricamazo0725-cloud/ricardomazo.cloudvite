@@ -20,3 +20,19 @@ export async function getPostBySlug(slug) {
   if (error) throw error;
   return data ?? null;
 }
+
+export async function getPublishedPostsFull(category) {
+  let query = supabase
+    .from("blog_posts")
+    .select("*")
+    .eq("published", true)
+    .order("published_at", { ascending: false });
+
+  if (category && category !== "todas") {
+    query = query.eq("category", category);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data ?? [];
+}

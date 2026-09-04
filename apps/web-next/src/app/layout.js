@@ -33,6 +33,7 @@ export const metadata = {
   },
   description:
     "Ricardo Mazo — Estrategia Digital, Agentes de IA y Automatización. Panel de control de un especialista en integrar sistemas.",
+  alternates: { canonical: siteUrl },
   openGraph: {
     type: "website",
     siteName: "Ricardo Mazo",
@@ -49,6 +50,17 @@ export const metadata = {
   },
 };
 
+const personJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Ricardo Mazo",
+  url: siteUrl,
+  jobTitle: "Digital Strategist & Solutions Developer",
+  description:
+    "Estrategia digital, agentes de IA y automatización de procesos para empresas.",
+  sameAs: [],
+};
+
 export default function RootLayout({ children }) {
   return (
     <html
@@ -56,6 +68,11 @@ export default function RootLayout({ children }) {
       className={`${spaceGrotesk.variable} ${inter.variable} ${jetBrainsMono.variable}`}
     >
       <body>
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+        />
         <Providers>{children}</Providers>
       </body>
     </html>

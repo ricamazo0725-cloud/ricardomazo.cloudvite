@@ -45,6 +45,7 @@ export const translations = {
     },
     blog: {
       eyebrow: "Blog",
+      heading: "Blog",
       loading: "Cargando...",
       empty: "Aún no hay publicaciones.",
     },
@@ -168,6 +169,7 @@ export const translations = {
     },
     blog: {
       eyebrow: "Blog",
+      heading: "Blog",
       loading: "Loading...",
       empty: "No posts yet.",
     },

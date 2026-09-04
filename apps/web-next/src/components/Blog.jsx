@@ -1,17 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 
-export default function Blog() {
+export default function Blog({ initialPosts }) {
     const { t, pick, lang } = useLanguage();
-    const [posts, setPosts] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [posts, setPosts] = useState(initialPosts || []);
+    const [loading, setLoading] = useState(!initialPosts);
     const [category, setCategory] = useState("todas");
+    const skipNextFetch = useRef(Boolean(initialPosts));
 
     useEffect(() => {
+        // La carga inicial ("todas") ya llega renderizada desde el servidor
+        // (ver app/blog/page.js) para que Google vea el contenido sin
+        // depender de JavaScript. Solo se vuelve a pedir a Supabase cuando
+        // el usuario cambia de categoría.
+        if (skipNextFetch.current) {
+            skipNextFetch.current = false;
+            return;
+        }
+
         async function fetchPosts() {
             setLoading(true);
             let query = supabase

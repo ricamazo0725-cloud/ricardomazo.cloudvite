@@ -2,6 +2,9 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { DEFAULT_LOCALE, LOCALES, translations } from "@/i18n/translations";
+import { localize } from "@/i18n/localize";
+
+export { localize };
 
 const STORAGE_KEY = "site_lang";
 const LanguageContext = createContext(null);
@@ -17,27 +20,6 @@ function detectInitialLang() {
 
 function getPath(obj, path) {
   return path.split(".").reduce((acc, key) => (acc == null ? acc : acc[key]), obj);
-}
-
-/**
- * Resuelve un valor que puede venir de Supabase en dos formas:
- * - Bilingüe nuevo: { es: "...", en: "..." } (o arrays: { es: [...], en: [...] })
- * - Legado (dato viejo sin migrar): un string o array plano — se muestra igual en
- *   cualquier idioma hasta que se edite desde el panel admin.
- */
-export function localize(value, lang) {
-  if (value == null) return value;
-  if (typeof value === "string" || Array.isArray(value)) return value;
-  if (typeof value === "object") {
-    if (lang in value || DEFAULT_LOCALE in value) {
-      return value[lang] ?? value[DEFAULT_LOCALE] ?? value[LOCALES.find((l) => value[l])] ?? "";
-    }
-    // Objeto sin ninguna clave de idioma (ej. {} recien creado desde el admin
-    // sin llenar todavia) -- nunca devolver el objeto crudo, React no puede
-    // renderizarlo como hijo y la pagina se rompe entera.
-    return "";
-  }
-  return value;
 }
 
 export function LanguageProvider({ children }) {

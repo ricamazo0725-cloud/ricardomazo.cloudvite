@@ -10,14 +10,17 @@ import Layout from "@/components/Layout";
 import { useLanguage } from "@/hooks/useLanguage";
 import { getProjects } from "@/api/projects";
 
-export default function ProjectsPage() {
+export default function ProjectsPage({ initialItems, initialError }) {
   const { t, pick } = useLanguage();
-  const [items, setItems] = useState(null);
-  const [error, setError] = useState(null);
+  const [items, setItems] = useState(initialItems ?? null);
+  const [error, setError] = useState(initialError ?? null);
 
   useEffect(() => {
+    // Ya llega renderizado desde el servidor (ver app/proyectos/page.js);
+    // solo se vuelve a pedir si por algún motivo no llegó nada por props.
+    if (initialItems) return;
     getProjects().then(setItems).catch((err) => setError(err.message));
-  }, []);
+  }, [initialItems]);
 
   return (
     <Layout>

@@ -18,11 +18,11 @@ const VOICE_LANG = {
     es: "es-ES",
 };
 
-export default function BlogPostPage() {
+export default function BlogPostPage({ initialPost }) {
     const { slug } = useParams();
     const { pick, lang } = useLanguage();
-    const [post, setPost] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [post, setPost] = useState(initialPost ?? null);
+    const [loading, setLoading] = useState(!initialPost);
     const [notFound, setNotFound] = useState(false);
 
     // Lightbox de la imagen
@@ -38,6 +38,14 @@ export default function BlogPostPage() {
     const autoAdvanceRef = useRef(true);
 
     useEffect(() => {
+        // El post ya llega renderizado desde el servidor (ver
+        // app/blog/[slug]/page.js) para que el contenido esté presente en
+        // el HTML inicial. Solo se vuelve a pedir a Supabase si por algún
+        // motivo no llegó (ej. navegación client-side sin props, poco
+        // probable en una ruta dinámica de App Router, pero se deja como
+        // respaldo defensivo).
+        if (initialPost) return;
+
         async function fetchPost() {
             setLoading(true);
             const { data, error } = await supabase
@@ -55,7 +63,7 @@ export default function BlogPostPage() {
             setLoading(false);
         }
         fetchPost();
-    }, [slug]);
+    }, [slug, initialPost]);
 
     useEffect(() => {
         window.speechSynthesis.cancel();

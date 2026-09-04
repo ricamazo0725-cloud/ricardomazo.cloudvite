@@ -1,4 +1,7 @@
 import ProjectsScreen from "@/screens/ProjectsScreen";
+import { getProjects } from "@/api/projects";
+
+export const revalidate = 60;
 
 export const metadata = {
   title: "Proyectos",
@@ -6,6 +9,14 @@ export const metadata = {
   alternates: { canonical: "/proyectos" },
 };
 
-export default function Page() {
-  return <ProjectsScreen />;
+export default async function Page() {
+  let items = [];
+  let error = null;
+  try {
+    items = await getProjects();
+  } catch (err) {
+    error = err.message;
+  }
+
+  return <ProjectsScreen initialItems={items} initialError={error} />;
 }

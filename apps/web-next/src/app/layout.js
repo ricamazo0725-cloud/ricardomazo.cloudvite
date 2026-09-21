@@ -1,4 +1,5 @@
 import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import Script from "next/script";
 import Providers from "@/components/Providers";
 import "./globals.css";
 
@@ -24,6 +25,9 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://ricardomazo.cloud";
+
+// ID de medición de Google Analytics (GA4).
+const GA_MEASUREMENT_ID = "G-9ERZW00XT5";
 
 export const metadata = {
   metadataBase: new URL(siteUrl),
@@ -61,7 +65,10 @@ const personJsonLd = {
   jobTitle: "Digital Strategist & Solutions Developer",
   description:
     "Estrategia digital, agentes de IA y automatización de procesos para empresas.",
-  sameAs: [],
+  sameAs: [
+    "https://github.com/ricamazo0725-cloud",
+    "https://www.linkedin.com/in/ricardo-mazo-velasquez/",
+  ],
 };
 
 // Determina el idioma real de <html lang> sin depender de una API dinámica
@@ -91,6 +98,18 @@ export default function RootLayout({ children }) {
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
         />
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}');
+          `}
+        </Script>
         <Providers>{children}</Providers>
       </body>
     </html>

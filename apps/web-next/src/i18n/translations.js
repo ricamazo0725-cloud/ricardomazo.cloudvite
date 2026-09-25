@@ -17,6 +17,8 @@ export const translations = {
     layout: {
       cta: "Hablemos",
       footerTagline: "Ecosistemas Digitales & Agentes de IA",
+      location: "Medellín, Colombia",
+      privacy: "Política de privacidad",
     },
     hero: {
       statusFallback: "Disponible para proyectos",
@@ -143,6 +145,8 @@ export const translations = {
     layout: {
       cta: "Let's talk",
       footerTagline: "Digital Ecosystems & AI Agents",
+      location: "Medellín, Colombia",
+      privacy: "Privacy policy",
     },
     hero: {
       statusFallback: "Available for projects",

@@ -13,7 +13,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://ricardomazo.cloud";
 // además a nivel de sitemap para que Google lo vea sin tener que visitar
 // cada URL primero.
 export default async function sitemap() {
-  const staticPaths = ["", "/blog", "/proyectos"];
+  const staticPaths = ["", "/blog", "/proyectos", "/privacidad"];
   const staticRoutes = staticPaths.map((path) => ({
     url: `${siteUrl}${path}`,
     lastModified: new Date(),

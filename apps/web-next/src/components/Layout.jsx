@@ -98,7 +98,15 @@ export default function Layout({ children }) {
 
       <footer className="border-t border-border">
         <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted font-mono">
-          <span>© {new Date().getFullYear()} Ricardo Mazo</span>
+          <span>
+            © {new Date().getFullYear()} Ricardo Mazo · {t("layout.location")}
+          </span>
+          <Link
+            href={`${basePrefix}/privacidad`}
+            className="hover:text-foreground transition-colors focus-ring rounded"
+          >
+            {t("layout.privacy")}
+          </Link>
           <span>{t("layout.footerTagline")}</span>
         </div>
       </footer>

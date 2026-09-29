@@ -154,6 +154,12 @@ Componente `Blog.jsx`
 - **Edge Function**: `apps/web/supabase/functions/nasa-daily-post/index.ts`.
   Corre en el servidor de Supabase (no en el navegador del visitante), por
   eso no choca con la Content-Security-Policy del `.htaccess`.
+- **Imágenes**: la función descarga la imagen del día y guarda una copia en
+  el bucket público `blog-images` de Supabase Storage (`nasa/<slug>.jpg`);
+  `cover_image` apunta a esa copia, no a apod.nasa.gov. Si la descarga falla
+  se guarda la URL de la NASA. Para re-alojar los posts que aún apuntan a
+  nasa.gov, llama la función con `?backfill=1`. El bucket se crea con
+  `apps/web/supabase/migration_blog_images.sql`.
 - **Secreto**: `NASA_API_KEY`, guardado con `supabase secrets set` — nunca
   vive en el código ni en `.env` del frontend.
 - **Cron job**: `nasa-daily-post-job`, programado con `pg_cron` + `pg_net`

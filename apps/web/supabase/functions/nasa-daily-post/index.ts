@@ -1,18 +1,24 @@
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { ApodItem, fetchFeed, findArticleImage } from "./apod.ts";
 
-const NASA_API_KEY = Deno.env.get("NASA_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 // Bucket público donde se guarda una copia de cada imagen de la NASA, para
-// que el blog no dependa de que apod.nasa.gov esté arriba (ver
-// migration_blog_images.sql).
+// que el blog no dependa de que los servidores de la NASA estén arriba ni
+// de que conserven sus URLs (ver migration_blog_images.sql).
 const BUCKET = "blog-images";
 
+// Título que dejó la API vieja de la NASA cuando empezó a fallar: esos
+// posts tienen también el texto y la imagen equivocados.
+const BROKEN_TITLE = "NASA Science";
+
+type Post = { id: string; slug: string; title: { es?: string } | null; cover_image: string | null };
+
+const isStored = (url: string | null) => Boolean(url?.startsWith(`${SUPABASE_URL}/storage/`));
+
 // Descarga la imagen y la sube a Supabase Storage. Devuelve la URL pública
-// de la copia, o null si no se pudo descargar (en ese caso el post se
-// guarda con la URL original de la NASA y se puede reintentar con el modo
-// backfill).
+// de la copia, o null si no se pudo descargar.
 async function rehostImage(
   supabase: SupabaseClient,
   url: string,
@@ -36,74 +42,99 @@ async function rehostImage(
   }
 }
 
-// Re-aloja las imágenes de los posts que todavía apuntan a nasa.gov.
-// Se llama una vez a mano con ?backfill=1 (mismo header Authorization que
-// usa el cron).
-async function backfill(supabase: SupabaseClient): Promise<Response> {
-  const { data: posts, error } = await supabase
-    .from("blog_posts")
-    .select("id, slug, cover_image")
-    .like("cover_image", "%nasa.gov%");
-  if (error) return new Response(`Error al leer posts: ${error.message}`, { status: 500 });
-
-  const failed: string[] = [];
-  let moved = 0;
-  for (const post of posts ?? []) {
-    const publicUrl = await rehostImage(supabase, post.cover_image, post.slug);
-    if (!publicUrl) {
-      failed.push(post.slug);
-      continue;
-    }
-    const { error: updateError } = await supabase
-      .from("blog_posts")
-      .update({ cover_image: publicUrl })
-      .eq("id", post.id);
-    if (updateError) failed.push(post.slug);
-    else moved++;
-  }
-
-  return Response.json({ total: posts?.length ?? 0, moved, failed });
+function postFields(item: ApodItem) {
+  return {
+    title: { es: item.title, en: item.title },
+    excerpt: {
+      es: item.explanation.slice(0, 180) + "...",
+      en: item.explanation.slice(0, 180) + "...",
+    },
+    content: { es: item.explanation, en: item.explanation },
+    source_url: item.link,
+  };
 }
 
+// Corre a diario desde pg_cron: publica la imagen del día y repara los
+// posts recientes cuya imagen todavía no está copiada en Storage. Con
+// ?backfill=1 (mismo header Authorization que usa el cron) repara también
+// los posts más antiguos que ya no salen en el feed.
 Deno.serve(async (req) => {
   const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+  const includeOlder = new URL(req.url).searchParams.get("backfill") === "1";
 
-  if (new URL(req.url).searchParams.get("backfill") === "1") {
-    return backfill(supabase);
+  let feed: ApodItem[];
+  try {
+    feed = await fetchFeed();
+  } catch (error) {
+    return new Response(`Error al consultar NASA APOD: ${(error as Error).message}`, { status: 502 });
+  }
+  if (feed.length === 0) {
+    return new Response("El feed de NASA APOD llegó vacío", { status: 502 });
   }
 
-  const nasaRes = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${NASA_API_KEY}`);
-  if (!nasaRes.ok) {
-    return new Response("Error al consultar NASA APOD", { status: 502 });
+  const { data, error: readError } = await supabase
+    .from("blog_posts")
+    .select("id, slug, title, cover_image")
+    .eq("source", "NASA APOD");
+  if (readError) {
+    return new Response(`Error al leer posts: ${readError.message}`, { status: 500 });
   }
-  const apod = await nasaRes.json();
-  if (apod.media_type !== "image") {
-    return new Response("El contenido del día no es una imagen, se omite", { status: 200 });
+  const posts = new Map((data as Post[]).map((post) => [post.slug, post]));
+
+  const result = { created: null as string | null, repaired: [] as string[], failed: [] as string[] };
+
+  // Post del día (el feed viene ordenado del más nuevo al más viejo).
+  const today = feed[0];
+  const todaySlug = `apod-${today.date}`;
+  if (!posts.has(todaySlug)) {
+    const coverImage = today.imageUrl && (await rehostImage(supabase, today.imageUrl, todaySlug));
+    if (!coverImage) {
+      // Sin imagen descargable (por ejemplo un video): se omite, como antes.
+      result.failed.push(todaySlug);
+    } else {
+      const { error } = await supabase.from("blog_posts").upsert(
+        {
+          slug: todaySlug,
+          category: "ciencia",
+          ...postFields(today),
+          cover_image: coverImage,
+          source: "NASA APOD",
+          published: true,
+          published_at: new Date().toISOString(),
+        },
+        { onConflict: "slug" },
+      );
+      if (error) return new Response(`Error al guardar: ${error.message}`, { status: 500 });
+      result.created = todaySlug;
+    }
   }
 
-  const slug = `apod-${apod.date}`;
-  const coverImage = (await rehostImage(supabase, apod.url, slug)) ?? apod.url;
+  // Reparación: posts que aún apuntan a la NASA o que quedaron con los
+  // datos equivocados de la API vieja.
+  const feedBySlug = new Map(feed.map((item) => [`apod-${item.date}`, item]));
+  for (const post of posts.values()) {
+    const broken = post.title?.es === BROKEN_TITLE;
+    if (isStored(post.cover_image) && !broken) continue;
 
-  const { error } = await supabase.from("blog_posts").upsert(
-    {
-      slug,
-      category: "ciencia",
-      title: { es: apod.title, en: apod.title },
-      excerpt: {
-        es: apod.explanation.slice(0, 180) + "...",
-        en: apod.explanation.slice(0, 180) + "...",
-      },
-      content: { es: apod.explanation, en: apod.explanation },
-      cover_image: coverImage,
-      source: "NASA APOD",
-      source_url: `https://apod.nasa.gov/apod/ap${apod.date.replace(/-/g, "").slice(2)}.html`,
-      published: true,
-      published_at: new Date().toISOString(),
-    },
-    { onConflict: "slug" },
-  );
-  if (error) {
-    return new Response(`Error al guardar: ${error.message}`, { status: 500 });
+    const item = feedBySlug.get(post.slug);
+    if (!item && !includeOlder) continue;
+
+    const sourceUrl = item ? item.imageUrl : await findArticleImage(post.slug.replace("apod-", ""));
+    const coverImage = sourceUrl && (await rehostImage(supabase, sourceUrl, post.slug));
+    if (!coverImage) {
+      result.failed.push(post.slug);
+      continue;
+    }
+
+    // El título y el texto solo se pisan si eran los de la API rota: los
+    // demás pueden estar traducidos a mano desde el admin.
+    const { error } = await supabase
+      .from("blog_posts")
+      .update({ cover_image: coverImage, ...(broken && item ? postFields(item) : {}) })
+      .eq("id", post.id);
+    if (error) result.failed.push(post.slug);
+    else result.repaired.push(post.slug);
   }
-  return new Response(`Post creado: ${slug}`, { status: 200 });
+
+  return Response.json(result);
 });

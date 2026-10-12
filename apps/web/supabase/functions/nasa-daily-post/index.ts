@@ -62,6 +62,10 @@ Deno.serve(async (req) => {
   const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
   const includeOlder = new URL(req.url).searchParams.get("backfill") === "1";
 
+  // Crea el bucket si todavía no existe (equivale a correr
+  // migration_blog_images.sql); si ya existe, el error se ignora.
+  await supabase.storage.createBucket(BUCKET, { public: true });
+
   let feed: ApodItem[];
   try {
     feed = await fetchFeed();

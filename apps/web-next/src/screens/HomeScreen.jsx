@@ -3,7 +3,12 @@
 import Layout from "@/components/Layout";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
+import TechMarquee from "@/components/TechMarquee";
+import FlowDiagram from "@/components/FlowDiagram";
 import Services from "@/components/Services";
+import CrmChatDemo from "@/components/CrmChatDemo";
+import AutomationShowcase from "@/components/AutomationShowcase";
+import QuickQuiz from "@/components/QuickQuiz";
 import Experience from "@/components/Experience";
 import Contact from "@/components/Contact";
 import WhatsAppButton from "@/components/WhatsAppButton";
@@ -31,10 +36,14 @@ export default function HomeScreen({ sections, services, experience, error }) {
   return (
     <Layout>
       <Hero data={sections?.hero} />
+      <TechMarquee />
+      <FlowDiagram />
       <About data={sections?.about} />
-
       <Services items={services} />
+      <CrmChatDemo />
+      <AutomationShowcase />
       <Experience items={experience} />
+      <QuickQuiz whatsapp={sections?.contact?.whatsapp} />
       <Contact data={sections?.contact} />
       <WhatsAppButton data={sections?.contact} />
     </Layout>

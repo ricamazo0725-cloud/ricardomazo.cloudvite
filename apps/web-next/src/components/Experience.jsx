@@ -4,27 +4,28 @@ import { useRef } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useStickyProgress } from "@/hooks/useMotion";
 
+const CHECKS = {
+  es: ["✓ Pedido recibido", "✓ Cliente registrado", "✓ Reporte enviado"],
+  en: ["✓ Order received", "✓ Customer saved", "✓ Report sent"],
+};
+
 // Pequeñas animaciones decorativas que rotan entre las tarjetas.
-function MiniAnim({ index }) {
+function MiniAnim({ index, lang }) {
   switch (index % 4) {
     case 0:
       return (
         <div className="exp-mini exp-mini-sync" aria-hidden="true">
-          <span style={{ left: "8%" }}>APP</span>
+          <span style={{ left: "8%" }}>WEB</span>
           <span style={{ right: "8%" }}>ERP</span>
           <i />
         </div>
       );
     case 1:
       return (
-        <div className="exp-mini exp-mini-code" aria-hidden="true">
-          <span>
-            <b>const</b> lead = <u>await</u> crm.save(msg);
-          </span>
-          <span>$ sudo systemctl reload nginx</span>
-          <span>
-            <b>aws</b> s3 sync ./uploads s3://…
-          </span>
+        <div className="exp-mini exp-mini-checks" aria-hidden="true">
+          {(CHECKS[lang] || CHECKS.es).map((label) => (
+            <span key={label}>{label}</span>
+          ))}
         </div>
       );
     case 2:
@@ -38,12 +39,12 @@ function MiniAnim({ index }) {
       );
     default:
       return (
-        <div className="exp-mini exp-mini-term" aria-hidden="true">
-          &gt; javac Main.java
-          <br />
-          &gt; java Main
-          <br />
-          <span className="text-primary">BUILD SUCCESSFUL</span>
+        <div className="exp-mini exp-mini-bars" aria-hidden="true">
+          <i style={{ height: "35%" }} />
+          <i style={{ height: "55%" }} />
+          <i style={{ height: "45%" }} />
+          <i style={{ height: "70%" }} />
+          <i style={{ height: "90%" }} />
         </div>
       );
   }
@@ -52,7 +53,7 @@ function MiniAnim({ index }) {
 // La sección es alta y su contenido queda fijo: el scroll vertical se
 // traduce en un desplazamiento horizontal de las tarjetas.
 export default function Experience({ items }) {
-  const { t, pick } = useLanguage();
+  const { t, pick, lang } = useLanguage();
   const sectionRef = useRef(null);
   const railRef = useRef(null);
   const progress = useStickyProgress(sectionRef);
@@ -97,7 +98,7 @@ export default function Experience({ items }) {
                   <h3 className="font-display font-semibold text-xl mt-2">{pick(item.role)}</h3>
                   <div className="font-mono text-xs text-accent mt-1 mb-3">{item.company}</div>
                   {description && <p className="text-sm leading-relaxed text-foreground/80 flex-1">{description}</p>}
-                  <MiniAnim index={i} />
+                  <MiniAnim index={i} lang={lang} />
                 </li>
               );
             })}

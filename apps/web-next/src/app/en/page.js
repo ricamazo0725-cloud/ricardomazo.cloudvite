@@ -10,7 +10,7 @@ export const revalidate = 60;
 export const metadata = {
   title: "Ricardo Mazo | Digital Strategist & Solutions Developer",
   description:
-    "Ricardo Mazo — Digital Strategy, AI Agents and Automation. A control panel from a specialist in integrating systems.",
+    "Ricardo Mazo — Digital Strategy, AI Agents and Automation. I automate your business processes and connect your information: sales, customers and WhatsApp in one flow.",
   alternates: {
     canonical: `${siteUrl}/en`,
     languages: { es: siteUrl, en: `${siteUrl}/en`, "x-default": siteUrl },
@@ -20,7 +20,7 @@ export const metadata = {
     siteName: "Ricardo Mazo",
     title: "Ricardo Mazo | Digital Strategist & Solutions Developer",
     description:
-      "Ricardo Mazo — Digital Strategy, AI Agents and Automation. A control panel from a specialist in integrating systems.",
+      "Ricardo Mazo — Digital Strategy, AI Agents and Automation. I automate your business processes and connect your information: sales, customers and WhatsApp in one flow.",
     url: `${siteUrl}/en`,
   },
   twitter: {

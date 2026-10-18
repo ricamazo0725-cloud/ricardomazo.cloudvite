@@ -36,7 +36,7 @@ export const metadata = {
     template: "%s | Ricardo Mazo",
   },
   description:
-    "Ricardo Mazo — Estrategia Digital, Agentes de IA y Automatización. Panel de control de un especialista en integrar sistemas.",
+    "Ricardo Mazo — Estrategia Digital, Agentes de IA y Automatización. Automatizo los procesos de tu negocio e integro tu información: ventas, clientes y WhatsApp en un solo flujo.",
   alternates: {
     canonical: siteUrl,
     languages: { es: siteUrl, en: `${siteUrl}/en`, "x-default": siteUrl },
@@ -46,7 +46,7 @@ export const metadata = {
     siteName: "Ricardo Mazo",
     title: "Ricardo Mazo | Digital Strategist & Solutions Developer",
     description:
-      "Ricardo Mazo — Estrategia Digital, Agentes de IA y Automatización. Panel de control de un especialista en integrar sistemas.",
+      "Ricardo Mazo — Estrategia Digital, Agentes de IA y Automatización. Automatizo los procesos de tu negocio e integro tu información: ventas, clientes y WhatsApp en un solo flujo.",
     url: siteUrl,
   },
   twitter: {

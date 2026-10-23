@@ -2,7 +2,9 @@
 const nextConfig = {
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "**.supabase.co" },
+      // Solo el proyecto propio de Supabase: con "**.supabase.co" cualquier
+      // proyecto ajeno podía usar el optimizador de imágenes de este servidor.
+      { protocol: "https", hostname: "odzftbmxmdmjjlprwizg.supabase.co" },
       { protocol: "https", hostname: "apod.nasa.gov" },
       { protocol: "https", hostname: "**.nasa.gov" },
     ],

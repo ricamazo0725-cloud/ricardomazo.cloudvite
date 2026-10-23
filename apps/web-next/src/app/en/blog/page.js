@@ -1,6 +1,7 @@
 import BlogScreen from "@/screens/BlogScreen";
 import { getPublishedPostsFull } from "@/api/blog";
 import { localize } from "@/i18n/localize";
+import { jsonLdString } from "@/lib/jsonLd";
 
 export const revalidate = 60;
 
@@ -49,7 +50,7 @@ export default async function Page() {
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdString(itemListJsonLd) }}
       />
       <BlogScreen initialPosts={posts} />
     </>

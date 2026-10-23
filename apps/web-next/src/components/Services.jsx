@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useLanguage } from "@/hooks/useLanguage";
+import { safeHref } from "@/lib/safeHref";
 
 // "/blog" -> ruta interna (navegación SPA con react-router).
 // "https://..." o "#..." -> se deja como <a> normal.
@@ -45,7 +46,7 @@ export default function Services({ items }) {
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 [perspective:1000px]">
           {items.map((item) => {
-            const href = item.link?.href;
+            const href = safeHref(item.link?.href);
             const linkLabel = pick(item.link?.label);
             const cardClass = "tilt-card card relative p-6 sm:p-8 flex flex-col gap-3 focus-ring";
             const cardProps = {

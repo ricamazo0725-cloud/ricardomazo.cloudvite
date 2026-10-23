@@ -9,8 +9,9 @@
 -- 1) Crea la tabla admin_users (quién es admin) y la función is_admin().
 -- 2) En site_content, service_items, experience_items, project_items y
 --    blog_posts borra TODAS las políticas que no sean de solo lectura y crea
---    una sola de escritura limitada a is_admin(). Las políticas de lectura
---    (SELECT) no se tocan.
+--    una sola de escritura limitada a is_admin().
+-- 3) La lectura pública de blog_posts queda limitada a posts publicados.
+-- 4) Borra cualquier política de escritura del bucket blog-images.
 -- La Edge Function nasa-daily-post usa la service_role, que se salta RLS, así
 -- que sigue funcionando igual.
 --
@@ -67,12 +68,47 @@ begin
   end loop;
 end $$;
 
--- 3) Revisa a mano (solo lectura): políticas del bucket blog-images y de
---    lectura de blog_posts. Cualquier política de INSERT/UPDATE/DELETE en
---    storage.objects que no exija is_admin() deja subir o borrar imágenes.
---    La lectura pública de blog_posts debería filtrar published = true.
-select tablename, policyname, cmd, roles, qual, with_check
+-- 3) blog_posts: la lectura pública solo ve posts publicados. Antes no se
+--    sabía cómo estaba (la tabla se creó fuera de los archivos del repo); si
+--    era using (true), cualquiera podía leer los borradores con la anon key.
+--    El sitio ya filtra published = true, así que no cambia nada visible.
+do $$
+declare
+  p record;
+begin
+  if to_regclass('public.blog_posts') is null then
+    return;
+  end if;
+  for p in
+    select policyname from pg_policies
+    where schemaname = 'public' and tablename = 'blog_posts' and cmd = 'SELECT'
+  loop
+    execute format('drop policy %I on public.blog_posts', p.policyname);
+  end loop;
+  create policy "public read published blog_posts" on public.blog_posts
+    for select using (published = true or public.is_admin());
+end $$;
+
+-- 4) Bucket blog-images: nadie sube ni borra desde el navegador. La función
+--    nasa-daily-post usa la service_role, que se salta RLS, y el bucket es
+--    público para leer, así que no necesita políticas de escritura. Si alguna
+--    se creó a mano, se borra. No toca políticas de otros buckets.
+do $$
+declare
+  p record;
+begin
+  for p in
+    select policyname from pg_policies
+    where schemaname = 'storage' and tablename = 'objects' and cmd <> 'SELECT'
+      and (coalesce(qual, '') || coalesce(with_check, '')) like '%blog-images%'
+  loop
+    execute format('drop policy %I on storage.objects', p.policyname);
+  end loop;
+end $$;
+
+-- 5) Comprobación (solo lectura): así deberían quedar las políticas.
+select schemaname, tablename, policyname, cmd, qual, with_check
 from pg_policies
-where (schemaname = 'storage' and tablename = 'objects')
-   or (schemaname = 'public' and tablename = 'blog_posts')
-order by tablename, cmd;
+where schemaname = 'public'
+   or (schemaname = 'storage' and tablename = 'objects')
+order by schemaname, tablename, cmd;

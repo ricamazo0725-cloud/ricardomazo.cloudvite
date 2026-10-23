@@ -135,7 +135,8 @@ pg_cron (Supabase)
       │  todos los días a las 6:00 AM UTC (1:00 AM Colombia)
       ▼
 Edge Function `nasa-daily-post`
-      │  hace fetch a https://api.nasa.gov/planetary/apod
+      │  lee el feed https://science.nasa.gov/feed/apod-basic/
+      │  y copia la imagen a Supabase Storage (bucket blog-images)
       ▼
 Tabla `blog_posts` (Postgres)
       │  upsert por slug (apod-YYYY-MM-DD), evita duplicados
@@ -154,8 +155,19 @@ Componente `Blog.jsx`
 - **Edge Function**: `apps/web/supabase/functions/nasa-daily-post/index.ts`.
   Corre en el servidor de Supabase (no en el navegador del visitante), por
   eso no choca con la Content-Security-Policy del `.htaccess`.
-- **Secreto**: `NASA_API_KEY`, guardado con `supabase secrets set` — nunca
-  vive en el código ni en `.env` del frontend.
+- **Fuente**: el feed RSS de `science.nasa.gov/apod` (ver `apod.ts` en la
+  misma carpeta). En octubre de 2026 la NASA movió APOD ahí: las URLs de
+  apod.nasa.gov dejaron de existir y `api.nasa.gov/planetary/apod` empezó a
+  devolver el logo de la NASA, así que la API ya no se usa.
+- **Imágenes**: la función descarga la imagen del día y guarda una copia en
+  el bucket público `blog-images` de Supabase Storage (`nasa/<slug>.jpg`);
+  `cover_image` apunta a esa copia, no a la NASA. En cada corrida repara
+  además los posts de los últimos 30 días que aún no tengan su copia; para
+  reparar también los más antiguos, llama la función una vez con
+  `?backfill=1`. El bucket se crea con
+  `apps/web/supabase/migration_blog_images.sql`.
+- **Secreto**: `NASA_API_KEY` ya no hace falta (el feed es público); puede
+  quedarse guardado sin problema.
 - **Cron job**: `nasa-daily-post-job`, programado con `pg_cron` + `pg_net`
   (extensiones activadas en Database → Extensions). Se ve/edita corriendo
   `select * from cron.job;` en el SQL Editor.

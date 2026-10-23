@@ -6,6 +6,7 @@ import Link from "next/link";
 import Layout from "@/components/Layout";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/lib/supabaseClient";
+import { safeHref } from "@/lib/safeHref";
 
 function splitIntoSentences(text) {
     if (!text) return [];
@@ -338,9 +339,9 @@ export default function BlogPostPage({ initialPost }) {
                             </p>
                         )}
 
-                        {post.source_url && (
+                        {safeHref(post.source_url) && (
                             <a
-                                href={post.source_url}
+                                href={safeHref(post.source_url)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-block mt-8 font-mono text-xs uppercase tracking-wider text-primary hover:underline"

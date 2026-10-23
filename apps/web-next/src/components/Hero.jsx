@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import NetworkCanvas from "@/components/NetworkCanvas";
 import { useLanguage } from "@/hooks/useLanguage";
+import { safeHref } from "@/lib/safeHref";
 
 // Parte el titular en letras animadas, agrupadas por palabra para que el
 // salto de línea nunca corte una palabra. El texto completo queda en
@@ -77,7 +78,7 @@ export default function Hero({ data }) {
         <div className="hero-fade mt-10 flex flex-wrap gap-4" style={{ animationDelay: "1.7s" }}>
           {primaryLabel && (
             <a
-              href={data.primaryCta.href || "#experience"}
+              href={safeHref(data.primaryCta.href, "#experience")}
               className="font-mono text-xs uppercase tracking-wider bg-primary text-primary-foreground rounded px-5 py-3 hover:opacity-90 transition-opacity focus-ring"
             >
               {primaryLabel}
@@ -85,7 +86,7 @@ export default function Hero({ data }) {
           )}
           {secondaryLabel && (
             <a
-              href={data.secondaryCta.href || "#services"}
+              href={safeHref(data.secondaryCta.href, "#services")}
               className="font-mono text-xs uppercase tracking-wider border border-border bg-surface rounded px-5 py-3 hover:border-accent hover:text-accent transition-colors focus-ring"
             >
               {secondaryLabel}

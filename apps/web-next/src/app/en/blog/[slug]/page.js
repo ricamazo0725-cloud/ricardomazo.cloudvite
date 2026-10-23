@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import BlogPostScreen from "@/screens/BlogPostScreen";
 import { getPostBySlug } from "@/api/blog";
 import { localize } from "@/i18n/localize";
+import { jsonLdString } from "@/lib/jsonLd";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://ricardomazo.cloud";
 
@@ -91,7 +92,7 @@ export default async function Page({ params }) {
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }}
       />
       <BlogPostScreen initialPost={post} />
     </>

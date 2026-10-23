@@ -9,6 +9,7 @@ import Link from "next/link";
 import Layout from "@/components/Layout";
 import { useLanguage } from "@/hooks/useLanguage";
 import { getProjects } from "@/api/projects";
+import { safeHref } from "@/lib/safeHref";
 
 export default function ProjectsPage({ initialItems, initialError }) {
   const { t, pick, lang } = useLanguage();
@@ -52,7 +53,7 @@ export default function ProjectsPage({ initialItems, initialError }) {
             {items.map((item, i) => (
               <a
                 key={item.id}
-                href={item.url}
+                href={safeHref(item.url) ?? undefined}
                 target="_blank"
                 rel="noreferrer"
                 className="card relative p-6 sm:p-8 flex flex-col gap-3 hover:border-primary transition-colors"
